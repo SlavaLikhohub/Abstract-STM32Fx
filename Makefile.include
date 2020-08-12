@@ -1,0 +1,38 @@
+DEBUG_FLAGS ?= -ggdb3
+STANDARD_FLAGS ?= -std=gnu17
+BUILD_DIR := ./build
+SRC_DIR := ./src
+INC_DIRS := ./include
+SOURCES := abstractSTM32.c
+
+# All includes semi-automatically collected here
+INCS = -I$(OPENCM3_DIR)/include $(addprefix -I,$(INC_DIRS))
+
+LIB_DIR ?= lib
+# This definition is used by Makefile includes for libopencm3
+OPENCM3_DIR = $(LIB_DIR)/libopencm3
+# Definitions required to generate linker script
+include $(OPENCM3_DIR)/mk/genlink-config.mk
+
+CFLAGS = $(TGT_CFLAGS) $(genlink_cppflags)
+CFLAGS += $(INCS)
+
+all: $(BUILD_DIR)/$(ABST_LIBNAME).a
+
+$(BUILD_DIR)/$(ABST_LIBNAME).a: $(BUILD_DIR)/$(SOURCES:.c=.o)
+	@echo Building $@ with $< files
+	$(Q)$(AR) $(ARFLAGS) "$@" $<
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/$(SOURCES) $(BUILD_DIR) $(BUILD_DIR)/libopencm3.a
+	$(Q)$(CC) $(CFLAGS) -o $@ -c $<
+
+$(BUILD_DIR):
+	mkdir $(BUILD_DIR)
+
+$(BUILD_DIR)/libopencm3.a: | $(BUILD_DIR) $(OPENCM3_DIR)/Makefile
+	@echo Building libopencm3...
+	cd $(OPENCM3_DIR) && $(MAKE) $(MAKEFLAGS) TARGETS="$(LIBOPENCM3_TARGET)" FP_FLAGS="$(FP_FLAGS)" CFLAGS="$(TGT_CFLAGS)" V=1 clean lib
+	cp $(OPENCM3_DIR)/lib/libopencm3_$(subst /,,$(LIBOPENCM3_TARGET)).a $@
+	@echo libopencm3 is built
+
+#-include $(OBJS:.o=.d)
