@@ -4,6 +4,9 @@
  * Struct for storing data about pin
  */
 struct pin {
+    /** Peripheral RCC. Can be RCC_GPIOA...RCC_GPIOK */
+    uint8_t rcc : 4;
+    
     /** GPIO Port ID. Can be GPIOA...GPIOK */
     uint8_t port : 4;
     
@@ -18,7 +21,7 @@ struct pin {
 
     /** 
      * GPIO Pin Analog/Digital Mode 
-     * Can be GPIO_MODE_AF, GPIO_MODE_ANALOG, 
+     * Can be GPIO_MODE_AF, GPIO_MODE_ANALOG 
      */
     uint8_t mode : 2;
     

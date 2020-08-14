@@ -12,6 +12,7 @@ void abst_gpio_init(struct pin pin)
     rcc_periph_clock_enable(pin.port);
     gpio_mode_setup(pin.port, pin.dir | pin.mode, pin.pull_up_down, 1 << pin.num);
     gpio_set_output_options(pin.port, pin.otype, pin.speed, 1 << pin.num);
+    gpio_clear(pin.port, 1 << pin.num);
 }
 
 /**
