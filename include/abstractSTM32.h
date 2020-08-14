@@ -51,6 +51,20 @@ struct pin {
     uint8_t is_inverse : 1;
 };
 
+enum abst_pin_port {
+    AB_GPIOA = 0,
+    AB_GPIOB,
+    AB_GPIOC,
+    AB_GPIOD,
+    AB_GPIOE,
+    AB_GPIOF,
+    AB_GPIOG,
+    AB_GPIOH,
+    AB_GPIOI,
+    AB_GPIOJ,
+    AB_GPIOK
+};
+
 void abst_gpio_init(struct pin pin);
 
 void abst_digital_write(struct pin pin, bool value);
