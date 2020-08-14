@@ -1,6 +1,7 @@
 #include "abstractSTM32.h"
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <stdint.h>
 
 /**
  * Initialize the pin with the setting that specified in struct pin.
@@ -9,9 +10,11 @@
  */
 void abst_gpio_init(struct pin pin)
 {
-    rcc_periph_clock_enable(pin.port);
-    gpio_mode_setup(pin.port, pin.dir | pin.mode, pin.pull_up_down, 1 << pin.num);
-    gpio_set_output_options(pin.port, pin.otype, pin.speed, 1 << pin.num);
+    uint32_t opencm_port = PERIPH_BASE_AHB1 + 0x0400 * pin.port;
+    rcc_periph_clock_enable(pin.rcc);
+    gpio_mode_setup(opencm_port, pin.dir | pin.mode, pin.pull_up_down, 1 << pin.num);
+    gpio_set_output_options(opencm_port, pin.otype, pin.speed, 1 << pin.num);
+    abst_digital_write(pin, 0);
 }
 
 /**

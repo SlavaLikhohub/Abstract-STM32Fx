@@ -1,4 +1,4 @@
-ABST_LIBNAME		:= libabstr_stm32f4
+ABST_LIBNAME		:= libabst_stm32f4
 LIBOPENCM3_TARGET ?= stm32/f4
 
 # Device is required for libopencm3

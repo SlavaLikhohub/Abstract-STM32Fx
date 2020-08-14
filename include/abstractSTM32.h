@@ -4,6 +4,9 @@
  * Struct for storing data about pin
  */
 struct pin {
+    /** Peripheral RCC. Can be RCC_GPIOA...RCC_GPIOK */
+    uint8_t rcc : 4;
+    
     /** GPIO Port ID. Can be GPIOA...GPIOK */
     uint8_t port : 4;
     
@@ -18,7 +21,7 @@ struct pin {
 
     /** 
      * GPIO Pin Analog/Digital Mode 
-     * Can be GPIO_MODE_AF, GPIO_MODE_ANALOG, 
+     * Can be GPIO_MODE_AF, GPIO_MODE_ANALOG 
      */
     uint8_t mode : 2;
     
@@ -46,6 +49,20 @@ struct pin {
      * If true, abst_digital_write and abst_digital_read functions inverse the value at the pin.
      */
     uint8_t is_inverse : 1;
+};
+
+enum abst_pin_port {
+    AB_GPIOA = 0,
+    AB_GPIOB,
+    AB_GPIOC,
+    AB_GPIOD,
+    AB_GPIOE,
+    AB_GPIOF,
+    AB_GPIOG,
+    AB_GPIOH,
+    AB_GPIOI,
+    AB_GPIOJ,
+    AB_GPIOK
 };
 
 void abst_gpio_init(struct pin pin);
