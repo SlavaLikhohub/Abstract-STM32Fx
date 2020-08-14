@@ -17,11 +17,18 @@ include $(OPENCM3_DIR)/mk/genlink-config.mk
 CFLAGS = $(TGT_CFLAGS) $(genlink_cppflags)
 CFLAGS += $(INCS)
 
+
 all: $(BUILD_DIR)/$(ABST_LIBNAME).a
+.PHONY: shared
 
 $(BUILD_DIR)/$(ABST_LIBNAME).a: $(BUILD_DIR)/$(SOURCES:.c=.o)
 	@echo Building $@ with $< files
 	$(Q)$(AR) $(ARFLAGS) "$@" $<
+
+shared: $(BUILD_DIR)/$(ABST_LIBNAME).so
+
+$(BUILD_DIR)/$(ABST_LIBNAME).so: $(BUILD_DIR)/$(SOURCES:.c=.o)
+	$(CC) -shared -o $@ $(CFLAGS) $(LDFLAGS) $<
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/$(SOURCES) $(BUILD_DIR) $(BUILD_DIR)/libopencm3.a
 	$(Q)$(CC) $(CFLAGS) -o $@ -c $<

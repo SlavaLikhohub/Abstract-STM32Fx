@@ -11,9 +11,6 @@ ifneq ($(V),1)
 Q := @
 endif
 
-CC		= $(PREFIX)gcc
-AR		= $(PREFIX)ar
-
 all: build
 
 
@@ -22,7 +19,10 @@ build:
 	@echo call $(LIB_MAKES) Makefiles
 	$(MAKE) -f $(LIB_MAKES) PREFIX="$(PREFIX)"
 
+shared:
+	$(MAKE) -f $(LIB_MAKES) PREFIX="$(PREFIX)" shared
+
 clean:
 	$(Q)rm -fr $(BUILD_DIR)
 
-.PHONY: clean build
+.PHONY: clean build shared

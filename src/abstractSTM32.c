@@ -1,20 +1,33 @@
 #include "abstractSTM32.h"
 #include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/f4/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <stdint.h>
+#define _REG_BIT(base, bit)		(((base) << 5) + (bit))
+
+static inline uint32_t ab_opencm_port_conv(const struct pin pin)
+{
+    return PERIPH_BASE_AHB1 + 0x0400 * pin.port;
+}
+
+static inline uint32_t ab_opencm_rcc_conv(const struct pin pin)
+{
+    return _REG_BIT(0x30, pin.port);
+}
 
 /**
  * Initialize the pin with the setting that specified in struct pin.
  * 
  * :param pin: pin struct with filled parameters.
  */
-void abst_gpio_init(struct pin pin)
+void abst_gpio_init(const struct pin pin)
 {
-    uint32_t opencm_port = PERIPH_BASE_AHB1 + 0x0400 * pin.port;
-    rcc_periph_clock_enable(pin.rcc);
-    gpio_mode_setup(opencm_port, pin.dir | pin.mode, pin.pull_up_down, 1 << pin.num);
-    gpio_set_output_options(opencm_port, pin.otype, pin.speed, 1 << pin.num);
-    abst_digital_write(pin, 0);
+    uint32_t opencm_port = ab_opencm_port_conv(pin);
+
+    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin));
+    gpio_mode_setup(opencm_port, pin.dir/* | pin.mode*/, pin.pull_up_down, 1 << pin.num);
+    //gpio_set_output_options(opencm_port, pin.otype, pin.speed, 1 << pin.num);
+    //abst_digital_write(pin, 0);
 }
 
 /**
@@ -23,12 +36,14 @@ void abst_gpio_init(struct pin pin)
  * :param pin: The pin struct with filled parameters.
  * :param value: The value to set. If is_inverse flag in struc pin is true value will be inversed.
  */
-void abst_digital_write(struct pin pin, bool value)
+void abst_digital_write(const struct pin pin, bool value)
 {
+    uint32_t opencm_port = ab_opencm_port_conv(pin);
+    value ^= pin.is_inverse;
     if (value)
-        gpio_set(pin.port, 1 << pin.num);
+        gpio_set(opencm_port, 1 << pin.num);
     else
-        gpio_clear(pin.port, 1 << pin.num);
+        gpio_clear(opencm_port, 1 << pin.num);
 }
 
 /**
@@ -36,9 +51,9 @@ void abst_digital_write(struct pin pin, bool value)
  * :param pin: The pin struct with filled parameters.
  * :return: Read value.
  */
-bool abst_digital_read(struct pin pin)
+bool abst_digital_read(const struct pin pin)
 {
-    return gpio_get(pin.port, 1 << pin.num);
+    return gpio_get(ab_opencm_port_conv(pin), 1 << pin.num) ^ pin.is_inverse;
 }
 
 /**

@@ -3,10 +3,7 @@
 /**
  * Struct for storing data about pin
  */
-struct pin {
-    /** Peripheral RCC. Can be RCC_GPIOA...RCC_GPIOK */
-    uint8_t rcc : 4;
-    
+struct pin {  
     /** GPIO Port ID. Can be GPIOA...GPIOK */
     uint8_t port : 4;
     
@@ -65,11 +62,11 @@ enum abst_pin_port {
     AB_GPIOK
 };
 
-void abst_gpio_init(struct pin pin);
+void abst_gpio_init(const struct pin pin);
 
-void abst_digital_write(struct pin pin, bool value);
+void abst_digital_write(const struct pin pin, bool value);
 
-bool abst_digital_read(struct pin pin);
+bool abst_digital_read(const  struct pin pin);
 
 void abst_pwm_write(struct pin pin, uint16_t value);
 

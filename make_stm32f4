@@ -6,6 +6,7 @@ DEVICE ?= stm32f407vgt6
 
 FP_FLAGS	?= -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CC		= $(PREFIX)gcc
+CC_TEST = gcc
 AR		= $(PREFIX)ar
 TGT_CFLAGS	= -Os \
 		  -Wall -Wextra -Wimplicit-function-declaration \
