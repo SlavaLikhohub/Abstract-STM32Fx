@@ -1,5 +1,8 @@
+#ifndef _ABSTRACT_STM32_H_
+#define _ABSTRACT_STM32_H_
 #include <stdint.h>
 #include <stdbool.h>
+
 /**
  * Struct for storing data about pin
  */
@@ -62,9 +65,15 @@ enum abst_pin_port {
     AB_GPIOK
 };
 
+void abst_init(void);
+
 void abst_gpio_init(const struct pin pin);
 
+void abst_sys_tick_handler(void);
+
 void abst_digital_write(const struct pin pin, bool value);
+
+void abst_toggle(const struct pin pin);
 
 bool abst_digital_read(const  struct pin pin);
 
@@ -72,5 +81,10 @@ void abst_pwm_write(struct pin pin, uint16_t value);
 
 uint16_t abst_adc_read(struct pin pin);
 
-void delay(uint64_t miliseconds);
-void delayMicroseconds(uint64_t microseconds);
+void delay_ms(uint64_t miliseconds);
+
+void sleep_wfi(void);
+
+void stop_sleep(void);
+
+#endif //_ABSTRACT_STM32_H_

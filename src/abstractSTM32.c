@@ -2,17 +2,60 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/f4/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/cm3/systick.h>
+#include <libopencm3/cm3/nvic.h>
 #include <stdint.h>
+
 #define _REG_BIT(base, bit)		(((base) << 5) + (bit))
 
-static inline uint32_t ab_opencm_port_conv(const struct pin pin)
+volatile uint64_t _time_us_;
+volatile bool _sleep_;
+
+inline static uint32_t ab_opencm_port_conv(const struct pin pin)
 {
     return PERIPH_BASE_AHB1 + 0x0400 * pin.port;
 }
 
-static inline uint32_t ab_opencm_rcc_conv(const struct pin pin)
+inline static uint32_t ab_opencm_rcc_conv(const struct pin pin)
 {
     return _REG_BIT(0x30, pin.port);
+}
+
+/**
+ * Initialize the library. 1) Start systick
+ */
+void abst_init(void)
+{
+    _time_us_ = 0;
+    _sleep_ = false;
+
+    // SYSTICK for delays and PWMs
+    systick_counter_disable();
+    
+    systick_set_frequency(1e3, 16e6);
+
+    systick_clear();
+    nvic_set_priority(NVIC_SYSTICK_IRQ, 0);
+    nvic_enable_irq(NVIC_SYSTICK_IRQ);
+    systick_interrupt_enable();
+    __asm__ volatile ("CPSIE I\n"); // Enable all interrupts
+    systick_counter_enable();
+}
+
+
+/**
+ * SysTick interruption handler.
+ * In case of redefining of this function make sure to call sys_tick_handler
+ * to call abst_sys_tick_handler to keep PWM and delay alive
+ */
+void sys_tick_handler(void)
+{
+    abst_sys_tick_handler();
+}
+
+void abst_sys_tick_handler(void)
+{
+    _time_us_++;
 }
 
 /**
@@ -25,9 +68,9 @@ void abst_gpio_init(const struct pin pin)
     uint32_t opencm_port = ab_opencm_port_conv(pin);
 
     rcc_periph_clock_enable(ab_opencm_rcc_conv(pin));
-    gpio_mode_setup(opencm_port, pin.dir/* | pin.mode*/, pin.pull_up_down, 1 << pin.num);
-    //gpio_set_output_options(opencm_port, pin.otype, pin.speed, 1 << pin.num);
-    //abst_digital_write(pin, 0);
+    gpio_mode_setup(opencm_port, pin.dir | pin.mode, pin.pull_up_down, 1 << pin.num);
+    gpio_set_output_options(opencm_port, pin.otype, pin.speed, 1 << pin.num);
+    abst_digital_write(pin, 0);
 }
 
 /**
@@ -44,6 +87,16 @@ void abst_digital_write(const struct pin pin, bool value)
         gpio_set(opencm_port, 1 << pin.num);
     else
         gpio_clear(opencm_port, 1 << pin.num);
+}
+
+/**
+ * Toggle value of a pin 
+ *
+ * :param pin: The pin struct with filled parameters.
+ */
+void abst_toggle(const struct pin pin)
+{
+    gpio_toggle(ab_opencm_port_conv(pin), 1 << pin.num);
 }
 
 /**
@@ -74,7 +127,7 @@ void abst_pwm_write(struct pin pin, uint16_t value)
 }
 
 /**
- * Read analog value from the pin via the Analog to Digital Converter TO DO 
+ * Read analog value from the pin via the Analog to Digital Converter (!) TO DO 
  * :param pin: The pin struct with filled parameters.
  * :return: Read value (12 bit)
  */
@@ -87,16 +140,28 @@ uint16_t abst_adc_read(struct pin pin)
  * Stop program for a given time.
  * :param miliseconds: Time to wait.
  */
-void delay(uint64_t miliseconds)
+void delay_ms(uint64_t miliseconds)
 {
-    delayMicroseconds(miliseconds * 1000);
+    volatile uint64_t stp_time = _time_us_ + miliseconds;
+    while (_time_us_ < stp_time)
+        sleep_wfi();
+    stop_sleep();
 }
 
 /**
- * Stop program for a given time.
- * :param microseconds: Time to wait.
+ * Go to wait for interruption mode and set :c:data:`_sleep_` to true.
+ * After interrupt by which microcontroller should be woken up permanentry call :c:func:`stop_sleep`.
  */
-void delayMicroseconds(uint64_t microseconds)
+void sleep_wfi(void)
 {
-    rcc_periph_clock_enable(RCC_TIM1);
+    _sleep_ = true;
+    __asm__ volatile("wfi");
+}
+
+/**
+ * Wake up microcontroller permanently (set :c:data:`_sleep_` to false).
+ */
+void stop_sleep(void)
+{
+    _sleep_ = false;
 }
