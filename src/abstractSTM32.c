@@ -4,12 +4,19 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
+#include <list.h>
 #include <stdint.h>
 
 #define _REG_BIT(base, bit)		(((base) << 5) + (bit))
 
 volatile uint64_t _time_us_;
 volatile bool _sleep_;
+
+// Service variables
+// List of pins that are currently used for software PWM
+static list_t *soft_pwm_list;
+// Tick every 100 us
+static const uint32_t systick_fr = 1e4;
 
 inline static uint32_t ab_opencm_port_conv(const struct pin pin)
 {
@@ -23,22 +30,23 @@ inline static uint32_t ab_opencm_rcc_conv(const struct pin pin)
 
 /**
  * Initialize the library. 1) Start systick
+ * :param ahb: The current AHB frequency in Hz.
  */
-void abst_init(void)
+void abst_init(uint32_t anb)
 {
     _time_us_ = 0;
     _sleep_ = false;
+    soft_pwm_list = list_new();
 
     // SYSTICK for delays and PWMs
     systick_counter_disable();
     
-    systick_set_frequency(1e3, 16e6);
+    systick_set_frequency(systick_fr, anb);
 
     systick_clear();
-    nvic_set_priority(NVIC_SYSTICK_IRQ, 0);
+    // nvic_set_priority(NVIC_SYSTICK_IRQ, 0);
     nvic_enable_irq(NVIC_SYSTICK_IRQ);
     systick_interrupt_enable();
-    __asm__ volatile ("CPSIE I\n"); // Enable all interrupts
     systick_counter_enable();
 }
 
@@ -53,7 +61,7 @@ void sys_tick_handler(void)
     abst_sys_tick_handler();
 }
 
-void abst_sys_tick_handler(void)
+inline void abst_sys_tick_handler(void)
 {
     _time_us_++;
 }
@@ -110,24 +118,38 @@ bool abst_digital_read(const struct pin pin)
 }
 
 /**
- * Set Pulse Wide Modulation at the pin. TO DO
+ * Set Pulse Wide Modulation at the pin.
  * :param pin: The pin struct with filled parameters.
- * :param value: the duty cycle: between 0 (always off) and 4095 (always on).
+ * :param value: the duty cycle: between 0 (always off) and 255 (always on).
  */
-void abst_pwm_write(struct pin pin, uint16_t value)
+void abst_pwm_soft(struct pin *pin_ptr, uint8_t value)
 {
-    if (value == 4095) {
-        abst_digital_write(pin, 1);
-        return;
-    }
-    else if (value == 0) {
-        abst_digital_write(pin, 0);
-        return;
-    }
+    // if (value == 255) {
+    //     abst_digital_write(pin, 1);
+    //     return;
+    // }
+    // else if (value == 0) {
+    //     abst_digital_write(pin, 0);
+    //     return;
+    // }
+
+    pin_ptr->__pwm_value = value;
+    if (!list_find(soft_pwm_list, pin_ptr))
+        list_lpush(soft_pwm_list, list_node_new(pin_ptr));
+}
+
+bool abst_stop_pwm_soft(struct pin *pin_ptr)
+{
+    list_node_t *list_pin = list_find(soft_pwm_list, pin_ptr);
+    if (!list_pin)
+        return false;
+    
+    list_remove(soft_pwm_list, list_pin);
+    return true;
 }
 
 /**
- * Read analog value from the pin via the Analog to Digital Converter (!) TO DO 
+ * Read analog value from the pin via the Analog to Digital Converter (!) TODO 
  * :param pin: The pin struct with filled parameters.
  * :return: Read value (12 bit)
  */

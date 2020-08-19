@@ -49,6 +49,8 @@ struct pin {
      * If true, abst_digital_write and abst_digital_read functions inverse the value at the pin.
      */
     uint8_t is_inverse : 1;
+
+    uint8_t __pwm_value;
 };
 
 enum abst_pin_port {
@@ -65,11 +67,11 @@ enum abst_pin_port {
     AB_GPIOK
 };
 
-void abst_init(void);
+void abst_init(uint32_t ahb);
 
 void abst_gpio_init(const struct pin pin);
 
-void abst_sys_tick_handler(void);
+extern inline void abst_sys_tick_handler(void);
 
 void abst_digital_write(const struct pin pin, bool value);
 
@@ -77,7 +79,9 @@ void abst_toggle(const struct pin pin);
 
 bool abst_digital_read(const  struct pin pin);
 
-void abst_pwm_write(struct pin pin, uint16_t value);
+void abst_pwm_soft(struct pin *pin_ptr, uint8_t value);
+
+bool abst_stop_pwm_soft(struct pin *pin_ptr);
 
 uint16_t abst_adc_read(struct pin pin);
 
