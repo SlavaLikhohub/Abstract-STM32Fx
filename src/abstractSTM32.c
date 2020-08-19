@@ -9,23 +9,49 @@
 
 #define _REG_BIT(base, bit)		(((base) << 5) + (bit))
 
-volatile uint64_t _time_us_;
-volatile bool _sleep_;
+static volatile uint32_t _time_ticks_;
+static volatile bool _sleep_;
 
 // Service variables
 // List of pins that are currently used for software PWM
 static list_t *soft_pwm_list;
+static uint8_t _pwm_cnt_;
 // Tick every 100 us
 static const uint32_t systick_fr = 1e4;
 
-inline static uint32_t ab_opencm_port_conv(const struct pin pin)
+inline static uint32_t ab_opencm_port_conv(const struct pin *pin_ptr)
 {
-    return PERIPH_BASE_AHB1 + 0x0400 * pin.port;
+    return PERIPH_BASE_AHB1 + 0x0400 * pin_ptr->port;
 }
 
-inline static uint32_t ab_opencm_rcc_conv(const struct pin pin)
+inline static uint32_t ab_opencm_rcc_conv(const struct pin *pin_ptr)
 {
-    return _REG_BIT(0x30, pin.port);
+    return _REG_BIT(0x30, pin_ptr->port);
+}
+
+static void abst_soft_pwm_hander(void)
+{
+    list_node_t *node;
+    list_iterator_t *it = list_iterator_new(soft_pwm_list, LIST_HEAD);
+    
+    // Reset all in first tick
+    if (_pwm_cnt_ == 0) {
+        while (node = list_iterator_next(it)) {
+            const struct pin * pin_ptr = node->val;
+            // If __pwm_value == 0 don't turn on the pin
+            abst_digital_write(pin_ptr, pin_ptr->__pwm_value);
+        }
+    }
+    else {
+        while (node = list_iterator_next(it)) {
+            const struct pin * pin_ptr = node->val;
+            if (pin_ptr->__pwm_value == _pwm_cnt_)
+                abst_digital_write(pin_ptr, 0);
+        }
+    }
+    free(it);
+    // Reset to 0 from 255 by overflowing
+    _pwm_cnt_++;
 }
 
 /**
@@ -34,7 +60,8 @@ inline static uint32_t ab_opencm_rcc_conv(const struct pin pin)
  */
 void abst_init(uint32_t anb)
 {
-    _time_us_ = 0;
+    _time_ticks_ = 0;
+    _pwm_cnt_ = 0;
     _sleep_ = false;
     soft_pwm_list = list_new();
 
@@ -51,19 +78,22 @@ void abst_init(uint32_t anb)
 }
 
 
+void abst_sys_tick_handler(void)
+{
+    _time_ticks_++;
+    // If soft_pwm_list is not empty
+    if (soft_pwm_list->len)
+        abst_soft_pwm_hander();
+}
+
 /**
  * SysTick interruption handler.
- * In case of redefining of this function make sure to call sys_tick_handler
- * to call abst_sys_tick_handler to keep PWM and delay alive
+ * In case of redefining of this function make sure
+ * to call :c:func:`abst_sys_tick_handler` to keep soft PWM and delay alive
  */
 void sys_tick_handler(void)
 {
     abst_sys_tick_handler();
-}
-
-inline void abst_sys_tick_handler(void)
-{
-    _time_us_++;
 }
 
 /**
@@ -71,14 +101,21 @@ inline void abst_sys_tick_handler(void)
  * 
  * :param pin: pin struct with filled parameters.
  */
-void abst_gpio_init(const struct pin pin)
+void abst_gpio_init(const struct pin *pin_ptr)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin);
+    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr);
 
-    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin));
-    gpio_mode_setup(opencm_port, pin.dir | pin.mode, pin.pull_up_down, 1 << pin.num);
-    gpio_set_output_options(opencm_port, pin.otype, pin.speed, 1 << pin.num);
-    abst_digital_write(pin, 0);
+    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr));
+    gpio_mode_setup(opencm_port, 
+                    pin_ptr->dir | pin_ptr->mode, 
+                    pin_ptr->pull_up_down, 
+                    1 << pin_ptr->num);
+    
+    gpio_set_output_options(opencm_port, 
+                            pin_ptr->otype, 
+                            pin_ptr->speed, 
+                            1 << pin_ptr->num);
+    abst_digital_write(pin_ptr, 0);
 }
 
 /**
@@ -87,14 +124,14 @@ void abst_gpio_init(const struct pin pin)
  * :param pin: The pin struct with filled parameters.
  * :param value: The value to set. If is_inverse flag in struc pin is true value will be inversed.
  */
-void abst_digital_write(const struct pin pin, bool value)
+void abst_digital_write(const struct pin *pin_ptr, bool value)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin);
-    value ^= pin.is_inverse;
+    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr);
+    value ^= pin_ptr->is_inverse;
     if (value)
-        gpio_set(opencm_port, 1 << pin.num);
+        gpio_set(opencm_port, 1 << pin_ptr->num);
     else
-        gpio_clear(opencm_port, 1 << pin.num);
+        gpio_clear(opencm_port, 1 << pin_ptr->num);
 }
 
 /**
@@ -102,9 +139,9 @@ void abst_digital_write(const struct pin pin, bool value)
  *
  * :param pin: The pin struct with filled parameters.
  */
-void abst_toggle(const struct pin pin)
+void abst_toggle(const struct pin *pin_ptr)
 {
-    gpio_toggle(ab_opencm_port_conv(pin), 1 << pin.num);
+    gpio_toggle(ab_opencm_port_conv(pin_ptr), 1 << pin_ptr->num);
 }
 
 /**
@@ -112,9 +149,9 @@ void abst_toggle(const struct pin pin)
  * :param pin: The pin struct with filled parameters.
  * :return: Read value.
  */
-bool abst_digital_read(const struct pin pin)
+bool abst_digital_read(const struct pin *pin_ptr)
 {
-    return gpio_get(ab_opencm_port_conv(pin), 1 << pin.num) ^ pin.is_inverse;
+    return gpio_get(ab_opencm_port_conv(pin_ptr), 1 << pin_ptr->num) ^ pin_ptr->is_inverse;
 }
 
 /**
@@ -124,15 +161,6 @@ bool abst_digital_read(const struct pin pin)
  */
 void abst_pwm_soft(struct pin *pin_ptr, uint8_t value)
 {
-    // if (value == 255) {
-    //     abst_digital_write(pin, 1);
-    //     return;
-    // }
-    // else if (value == 0) {
-    //     abst_digital_write(pin, 0);
-    //     return;
-    // }
-
     pin_ptr->__pwm_value = value;
     if (!list_find(soft_pwm_list, pin_ptr))
         list_lpush(soft_pwm_list, list_node_new(pin_ptr));
@@ -145,6 +173,7 @@ bool abst_stop_pwm_soft(struct pin *pin_ptr)
         return false;
     
     list_remove(soft_pwm_list, list_pin);
+    abst_digital_write(pin_ptr, 0);
     return true;
 }
 
@@ -153,7 +182,7 @@ bool abst_stop_pwm_soft(struct pin *pin_ptr)
  * :param pin: The pin struct with filled parameters.
  * :return: Read value (12 bit)
  */
-uint16_t abst_adc_read(struct pin pin)
+uint16_t abst_adc_read(struct pin *pin_ptr)
 {
     return 0;
 }
@@ -162,19 +191,19 @@ uint16_t abst_adc_read(struct pin pin)
  * Stop program for a given time.
  * :param miliseconds: Time to wait.
  */
-void delay_ms(uint64_t miliseconds)
+void abst_delay_ms(uint64_t miliseconds)
 {
-    volatile uint64_t stp_time = _time_us_ + miliseconds;
-    while (_time_us_ < stp_time)
-        sleep_wfi();
-    stop_sleep();
+    volatile uint32_t stp_time = abst_time_ms() + miliseconds;
+    while (abst_time_ms() < stp_time)
+        abst_sleep_wfi();
+    abst_stop_sleep();
 }
 
 /**
  * Go to wait for interruption mode and set :c:data:`_sleep_` to true.
  * After interrupt by which microcontroller should be woken up permanentry call :c:func:`stop_sleep`.
  */
-void sleep_wfi(void)
+void abst_sleep_wfi(void)
 {
     _sleep_ = true;
     __asm__ volatile("wfi");
@@ -183,7 +212,15 @@ void sleep_wfi(void)
 /**
  * Wake up microcontroller permanently (set :c:data:`_sleep_` to false).
  */
-void stop_sleep(void)
+void abst_stop_sleep(void)
 {
     _sleep_ = false;
+}
+/**
+ * Get time from Initialization in miliseconds. Timer overflow in 4 days 23 hours 18 minutes 
+ * :return: Time in miliseconds
+ */
+uint32_t abst_time_ms(void)
+{
+    return _time_ticks_ * (1e3 / systick_fr);
 }

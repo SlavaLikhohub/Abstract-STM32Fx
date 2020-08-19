@@ -69,26 +69,28 @@ enum abst_pin_port {
 
 void abst_init(uint32_t ahb);
 
-void abst_gpio_init(const struct pin pin);
+void abst_gpio_init(const struct pin *pin_ptr);
 
-extern inline void abst_sys_tick_handler(void);
+// inline void abst_sys_tick_handler(void);
 
-void abst_digital_write(const struct pin pin, bool value);
+void abst_digital_write(const struct pin *pin_ptr, bool value);
 
-void abst_toggle(const struct pin pin);
+void abst_toggle(const struct pin *pin_ptr);
 
-bool abst_digital_read(const  struct pin pin);
+bool abst_digital_read(const  struct pin *pin_ptr);
 
 void abst_pwm_soft(struct pin *pin_ptr, uint8_t value);
 
 bool abst_stop_pwm_soft(struct pin *pin_ptr);
 
-uint16_t abst_adc_read(struct pin pin);
+uint16_t abst_adc_read(struct pin *pin_ptr);
 
-void delay_ms(uint64_t miliseconds);
+void abst_delay_ms(uint64_t miliseconds);
 
-void sleep_wfi(void);
+void abst_sleep_wfi(void);
 
-void stop_sleep(void);
+void abst_stop_sleep(void);
+
+uint32_t abst_time_ms(void);
 
 #endif //_ABSTRACT_STM32_H_
