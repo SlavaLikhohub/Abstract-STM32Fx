@@ -19,16 +19,18 @@ static uint8_t _pwm_cnt_;
 // Tick every 100 us
 static const uint32_t systick_fr = 1e4;
 
-inline static uint32_t ab_opencm_port_conv(const struct pin *pin_ptr)
+inline static uint32_t ab_opencm_port_conv(const uint8_t port)
 {
-    return PERIPH_BASE_AHB1 + 0x0400 * pin_ptr->port;
+    return PERIPH_BASE_AHB1 + 0x0400 * port;
 }
 
-inline static uint32_t ab_opencm_rcc_conv(const struct pin *pin_ptr)
+inline static uint32_t ab_opencm_rcc_conv(const uint8_t port)
 {
-    return _REG_BIT(0x30, pin_ptr->port);
+    return _REG_BIT(0x30, port);
 }
-
+/*
+ * Control the soft PWM. 
+ */
 static void abst_soft_pwm_hander(void)
 {
     list_node_t *node;
@@ -50,13 +52,48 @@ static void abst_soft_pwm_hander(void)
         }
     }
     free(it);
-    // Reset to 0 from 255 by overflowing
     _pwm_cnt_++;
+    if (_pwm_cnt_ == 255)
+        _pwm_cnt_ = 0;
+}
+/*
+ * Compose bits in the group.
+ * Example: pins_num = 0b01001011, value = 0b0100010, output = 0b1010
+ */
+static uint16_t compose_bits(uint16_t pins_num, uint16_t values)
+{
+    volatile uint16_t output = 0;
+    uint8_t cnt = 0;
+    for (int i = 0; i < 16; i++) {
+        if ((pins_num >> i) & 1) {
+            output |= ((values >> i) & 1) << cnt;
+            cnt++;
+        }
+    }
+    return output;
+}
+
+/*
+ * Decompose bits in the group.
+ * Example: pins_num = 0b01001011, value = 0b1010, output = 0b0100010
+ */
+static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
+{
+    uint16_t output = 0;
+    uint8_t cnt = 0;
+    for (int i = 0; i < sizeof(pins_num); i++) {
+        if ((pins_num >> i) & 1) {
+            output |= ((values >> cnt) & 1) << i;
+            cnt++;
+        }
+    }
+    return output;
 }
 
 /**
- * Initialize the library. 1) Start systick
- * :param ahb: The current AHB frequency in Hz.
+ * Initialize the library. 1) Reset global variables 2) Start systick
+ * :param ahb: The current AHB frequency in Hz. 
+ * If frequency changes reinit library with different value. Note: All global variables will be reset.
  */
 void abst_init(uint32_t anb)
 {
@@ -91,7 +128,7 @@ void abst_sys_tick_handler(void)
  * In case of redefining of this function make sure
  * to call :c:func:`abst_sys_tick_handler` to keep soft PWM and delay alive
  */
-void sys_tick_handler(void)
+void __attribute__ ((weak)) sys_tick_handler(void)
 {
     abst_sys_tick_handler();
 }
@@ -99,13 +136,13 @@ void sys_tick_handler(void)
 /**
  * Initialize the pin with the setting that specified in struct pin.
  * 
- * :param pin: pin struct with filled parameters.
+ * :param pin_ptr: pin struct with filled parameters.
  */
 void abst_gpio_init(const struct pin *pin_ptr)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr);
+    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
 
-    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr));
+    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr->port));
     gpio_mode_setup(opencm_port, 
                     pin_ptr->dir | pin_ptr->mode, 
                     pin_ptr->pull_up_down, 
@@ -119,14 +156,36 @@ void abst_gpio_init(const struct pin *pin_ptr)
 }
 
 /**
+ * Initialize the pin group with the setting that specified in struct pin.
+ * 
+ * :param pin_gr_ptr: pin_group struct with filled parameters.
+ */
+void abst_group_gpio_init(const struct pin_group *pin_gr_ptr)
+{
+    uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
+
+    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_gr_ptr->port));
+
+    gpio_mode_setup(opencm_port, 
+                    pin_gr_ptr->dir | pin_gr_ptr->mode, 
+                    pin_gr_ptr->pull_up_down, 
+                    pin_gr_ptr->num);
+    
+    gpio_set_output_options(opencm_port, 
+                            pin_gr_ptr->otype, 
+                            pin_gr_ptr->speed, 
+                            pin_gr_ptr->num);
+}
+
+/**
  * Set value at the output of the pin.
  * 
- * :param pin: The pin struct with filled parameters.
+ * :param pin_ptr: The pin struct with filled parameters.
  * :param value: The value to set. If is_inverse flag in struc pin is true value will be inversed.
  */
 void abst_digital_write(const struct pin *pin_ptr, bool value)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr);
+    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
     value ^= pin_ptr->is_inverse;
     if (value)
         gpio_set(opencm_port, 1 << pin_ptr->num);
@@ -135,28 +194,67 @@ void abst_digital_write(const struct pin *pin_ptr, bool value)
 }
 
 /**
+ * Set value at the output of the pin group.
+ * 
+ * :param pin_gr_ptr: The pin_group struct with filled parameters.
+ * :param value: The value to set. If is_inverse flag in struc pin is true value will be inversed.
+ */
+void abst_group_digital_write(const struct pin_group *pin_gr_ptr, uint16_t values)
+{
+    uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
+    
+    // Init values readed from GPIO_ODR register
+    uint16_t out_values = GPIO_ODR(opencm_port);
+    
+    values ^= pin_gr_ptr->is_inverse;
+    
+    int cnt = 0;
+    for (int i = 0; i < sizeof(values) * 8; i++) {
+        if ((pin_gr_ptr->num >> i) & 1) {
+            out_values &= ~(1 << i);
+            out_values |= ((values >> cnt++) & 1) << i;
+        }
+    }
+
+    gpio_port_write(opencm_port, out_values);
+}
+
+/**
  * Toggle value of a pin 
  *
- * :param pin: The pin struct with filled parameters.
+ * :param pin_ptr: The pin struct with filled parameters.
  */
 void abst_toggle(const struct pin *pin_ptr)
 {
-    gpio_toggle(ab_opencm_port_conv(pin_ptr), 1 << pin_ptr->num);
+    gpio_toggle(ab_opencm_port_conv(pin_ptr->port), 1 << pin_ptr->num);
 }
 
 /**
  * Read value from the pin via the input driver.
- * :param pin: The pin struct with filled parameters.
+ * :param pin_ptr: The pin struct with filled parameters.
  * :return: Read value.
  */
 bool abst_digital_read(const struct pin *pin_ptr)
 {
-    return gpio_get(ab_opencm_port_conv(pin_ptr), 1 << pin_ptr->num) ^ pin_ptr->is_inverse;
+    return gpio_get(ab_opencm_port_conv(pin_ptr->port), 1 << pin_ptr->num) ^ pin_ptr->is_inverse;
 }
 
 /**
- * Set Pulse Wide Modulation at the pin.
- * :param pin: The pin struct with filled parameters.
+ * Read value from pins in a group via the input driver.
+ * :param pin_gr_ptr: The pin_group struct with filled parameters.
+ * :return: Read bitmap.
+ */
+uint16_t abst_group_digital_read(const struct pin_group *pin_gr_ptr)
+{
+    uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
+    uint16_t values = gpio_port_read(opencm_port);
+    uint16_t out = compose_bits(pin_gr_ptr->num, values);
+    return out^pin_gr_ptr->is_inverse;
+}
+
+/**
+ * Set Pulse Wide Modulation (PWM) at the pin. When PWM should be stopped call :c:func:`abst_stop_pwm_soft`
+ * :param pin_ptr: The pin struct with filled parameters.
  * :param value: the duty cycle: between 0 (always off) and 255 (always on).
  */
 void abst_pwm_soft(struct pin *pin_ptr, uint8_t value)
@@ -165,7 +263,11 @@ void abst_pwm_soft(struct pin *pin_ptr, uint8_t value)
     if (!list_find(soft_pwm_list, pin_ptr))
         list_lpush(soft_pwm_list, list_node_new(pin_ptr));
 }
-
+/**
+ * Stop PWM on the pin
+ * :param pin_ptr: The pin struct with filled parameters.
+ * :return: true if operation successful, false if pin was not found in list of pins with PWM
+ */
 bool abst_stop_pwm_soft(struct pin *pin_ptr)
 {
     list_node_t *list_pin = list_find(soft_pwm_list, pin_ptr);
@@ -179,7 +281,7 @@ bool abst_stop_pwm_soft(struct pin *pin_ptr)
 
 /**
  * Read analog value from the pin via the Analog to Digital Converter (!) TODO 
- * :param pin: The pin struct with filled parameters.
+ * :param pin_ptr: The pin struct with filled parameters.
  * :return: Read value (12 bit)
  */
 uint16_t abst_adc_read(struct pin *pin_ptr)
