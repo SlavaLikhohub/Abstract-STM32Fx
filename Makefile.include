@@ -26,7 +26,7 @@ CFLAGS = $(TGT_CFLAGS) $(genlink_cppflags)
 CFLAGS += $(INCS)
 
 
-all: $(BUILD_DIR)/$(ABST_LIBNAME).a $(BUILD_DIR)/libopencm3.a $(BUILD_DIR)/liblist.a
+all: | $(BUILD_DIR)/libopencm3.a $(BUILD_DIR)/liblist.a $(BUILD_DIR)/$(ABST_LIBNAME).a
 .PHONY: shared
 
 $(BUILD_DIR)/$(ABST_LIBNAME).a: $(BUILD_DIR)/$(SOURCES:.c=.o)
