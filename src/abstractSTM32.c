@@ -92,6 +92,7 @@ static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
 
 /**
  * Initialize the library. 1) Reset global variables 2) Start systick
+ *
  * :param ahb: The current AHB frequency in Hz. 
  * If frequency changes reinit library with different value. Note: All global variables will be reset.
  */
@@ -136,7 +137,7 @@ void __attribute__ ((weak)) sys_tick_handler(void)
 /**
  * Initialize the pin with the setting that specified in struct pin.
  * 
- * :param pin_ptr: pin struct with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
  */
 void abst_gpio_init(const struct pin *pin_ptr)
 {
@@ -158,7 +159,7 @@ void abst_gpio_init(const struct pin *pin_ptr)
 /**
  * Initialize the pin group with the setting that specified in struct pin.
  * 
- * :param pin_gr_ptr: pin_group struct with filled parameters.
+ * :param pin_gr_ptr: Pointer to :c:type:`pin_group` with filled parameters.
  */
 void abst_group_gpio_init(const struct pin_group *pin_gr_ptr)
 {
@@ -180,7 +181,7 @@ void abst_group_gpio_init(const struct pin_group *pin_gr_ptr)
 /**
  * Set value at the output of the pin.
  * 
- * :param pin_ptr: The pin struct with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
  * :param value: The value to set. If is_inverse flag in struc pin is true value will be inversed.
  */
 void abst_digital_write(const struct pin *pin_ptr, bool value)
@@ -196,7 +197,7 @@ void abst_digital_write(const struct pin *pin_ptr, bool value)
 /**
  * Set value at the output of the pin group.
  * 
- * :param pin_gr_ptr: The pin_group struct with filled parameters.
+ * :param pin_gr_ptr: Pointer to :c:type:`pin_group` struct with filled parameters.
  * :param value: The value to set. If is_inverse flag in struc pin is true value will be inversed.
  */
 void abst_group_digital_write(const struct pin_group *pin_gr_ptr, uint16_t values)
@@ -222,7 +223,7 @@ void abst_group_digital_write(const struct pin_group *pin_gr_ptr, uint16_t value
 /**
  * Toggle value of a pin 
  *
- * :param pin_ptr: The pin struct with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
  */
 void abst_toggle(const struct pin *pin_ptr)
 {
@@ -231,7 +232,8 @@ void abst_toggle(const struct pin *pin_ptr)
 
 /**
  * Read value from the pin via the input driver.
- * :param pin_ptr: The pin struct with filled parameters.
+ *
+ * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
  * :return: Read value.
  */
 bool abst_digital_read(const struct pin *pin_ptr)
@@ -241,7 +243,8 @@ bool abst_digital_read(const struct pin *pin_ptr)
 
 /**
  * Read value from pins in a group via the input driver.
- * :param pin_gr_ptr: The pin_group struct with filled parameters.
+ *
+ * :param pin_gr_ptr: Pointer to :c:type:`pin_group` with filled parameters.
  * :return: Read bitmap.
  */
 uint16_t abst_group_digital_read(const struct pin_group *pin_gr_ptr)
@@ -254,7 +257,8 @@ uint16_t abst_group_digital_read(const struct pin_group *pin_gr_ptr)
 
 /**
  * Set Pulse Wide Modulation (PWM) at the pin. When PWM should be stopped call :c:func:`abst_stop_pwm_soft`
- * :param pin_ptr: The pin struct with filled parameters.
+ *
+ * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
  * :param value: the duty cycle: between 0 (always off) and 255 (always on).
  */
 void abst_pwm_soft(struct pin *pin_ptr, uint8_t value)
@@ -264,8 +268,9 @@ void abst_pwm_soft(struct pin *pin_ptr, uint8_t value)
         list_lpush(soft_pwm_list, list_node_new(pin_ptr));
 }
 /**
- * Stop PWM on the pin
- * :param pin_ptr: The pin struct with filled parameters.
+ * Stop PWM on the pin.
+ *
+ * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
  * :return: true if operation successful, false if pin was not found in list of pins with PWM
  */
 bool abst_stop_pwm_soft(struct pin *pin_ptr)
@@ -281,16 +286,18 @@ bool abst_stop_pwm_soft(struct pin *pin_ptr)
 
 /**
  * Read analog value from the pin via the Analog to Digital Converter (!) TODO 
- * :param pin_ptr: The pin struct with filled parameters.
+ *
+ * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
  * :return: Read value (12 bit)
  */
 uint16_t abst_adc_read(struct pin *pin_ptr)
 {
-    return 0;
+    return ABST_NOT_IMPLEMENTED;
 }
 
 /**
  * Stop program for a given time.
+ *
  * :param miliseconds: Time to wait.
  */
 void abst_delay_ms(uint64_t miliseconds)
@@ -320,6 +327,7 @@ void abst_stop_sleep(void)
 }
 /**
  * Get time from Initialization in miliseconds. Timer overflow in 4 days 23 hours 18 minutes 
+ *
  * :return: Time in miliseconds
  */
 uint32_t abst_time_ms(void)

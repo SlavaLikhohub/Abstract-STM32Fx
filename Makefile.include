@@ -4,6 +4,7 @@ BUILD_DIR := ./build
 SRC_DIR := ./src
 INC_DIRS := ./include
 SOURCES := abstractSTM32.c
+SOURCES += abstractLCD.c
 
 CC		= $(PREFIX)gcc
 AR		= $(PREFIX)ar
@@ -29,7 +30,7 @@ CFLAGS += $(INCS)
 all: | $(BUILD_DIR)/libopencm3.a $(BUILD_DIR)/liblist.a $(BUILD_DIR)/$(ABST_LIBNAME).a
 .PHONY: shared
 
-$(BUILD_DIR)/$(ABST_LIBNAME).a: $(BUILD_DIR)/$(SOURCES:.c=.o)
+$(BUILD_DIR)/$(ABST_LIBNAME).a: $(addprefix $(BUILD_DIR)/,$(SOURCES:.c=.o))
 	@echo Building $@ with $< files
 	$(Q)$(AR) $(ARFLAGS) "$@" $<
 
@@ -38,7 +39,7 @@ shared: $(BUILD_DIR)/$(ABST_LIBNAME).so
 $(BUILD_DIR)/$(ABST_LIBNAME).so: $(BUILD_DIR)/$(SOURCES:.c=.o)
 	$(CC) -shared -o $@ $(CFLAGS) $(LDFLAGS) $<
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/$(SOURCES) $(BUILD_DIR)
+$(BUILD_DIR)/%.o: $(addprefix $(SRC_DIR)/,$(SOURCES)) $(BUILD_DIR)
 	$(Q)$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BUILD_DIR):

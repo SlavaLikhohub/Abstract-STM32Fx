@@ -3,6 +3,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/** Error codes */
+enum abst_errors {
+    ABST_OK = 0,
+    ABST_UNKNOWN_ERROR,
+    ABST_WRONG_PARAMS,
+    ABST_NOT_IMPLEMENTED
+};
+
 /**
  * Struct for storing data about pin
  */
