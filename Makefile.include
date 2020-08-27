@@ -31,15 +31,15 @@ all: | $(BUILD_DIR)/libopencm3.a $(BUILD_DIR)/liblist.a $(BUILD_DIR)/$(ABST_LIBN
 .PHONY: shared
 
 $(BUILD_DIR)/$(ABST_LIBNAME).a: $(addprefix $(BUILD_DIR)/,$(SOURCES:.c=.o))
-	@echo Building $@ with $< files
-	$(Q)$(AR) $(ARFLAGS) "$@" $<
+	@echo Building $@ with $^ files
+	$(Q)$(AR) $(ARFLAGS) "$@" $^
 
 shared: $(BUILD_DIR)/$(ABST_LIBNAME).so
 
-$(BUILD_DIR)/$(ABST_LIBNAME).so: $(BUILD_DIR)/$(SOURCES:.c=.o)
-	$(CC) -shared -o $@ $(CFLAGS) $(LDFLAGS) $<
+$(BUILD_DIR)/$(ABST_LIBNAME).so: $(addprefix $(BUILD_DIR)/,$(SOURCES:.c=.o))
+	$(CC) -shared -o $@ $(CFLAGS) $(LDFLAGS) $^
 
-$(BUILD_DIR)/%.o: $(addprefix $(SRC_DIR)/,$(SOURCES)) $(BUILD_DIR)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)
 	$(Q)$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BUILD_DIR):

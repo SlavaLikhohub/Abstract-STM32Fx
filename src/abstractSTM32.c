@@ -4,10 +4,12 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
-#include <list.h>
 #include <stdint.h>
+#include <list.h>
 
 #define _REG_BIT(base, bit)		(((base) << 5) + (bit))
+
+#define CEILING_POS(X) ((X-(int)(X)) > 0 ? (int)(X+1) : (int)(X))
 
 static volatile uint32_t _time_ticks_;
 static volatile bool _sleep_;
@@ -38,14 +40,14 @@ static void abst_soft_pwm_hander(void)
     
     // Reset all in first tick
     if (_pwm_cnt_ == 0) {
-        while (node = list_iterator_next(it)) {
+        while ((node = list_iterator_next(it))) {
             const struct abst_pin * pin_ptr = node->val;
             // If __pwm_value == 0 don't turn on the pin
             abst_digital_write(pin_ptr, pin_ptr->__pwm_value);
         }
     }
     else {
-        while (node = list_iterator_next(it)) {
+        while ((node = list_iterator_next(it))) {
             const struct abst_pin * pin_ptr = node->val;
             if (pin_ptr->__pwm_value == _pwm_cnt_)
                 abst_digital_write(pin_ptr, 0);
@@ -81,7 +83,7 @@ static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
 {
     uint16_t output = 0;
     uint8_t cnt = 0;
-    for (int i = 0; i < sizeof(pins_num); i++) {
+    for (uint8_t i = 0; i < sizeof(pins_num); i++) {
         if ((pins_num >> i) & 1) {
             output |= ((values >> cnt) & 1) << i;
             cnt++;
@@ -210,7 +212,7 @@ void abst_group_digital_write(const struct abst_pin_group *pin_gr_ptr, uint16_t 
     values ^= pin_gr_ptr->is_inverse;
     
     int cnt = 0;
-    for (int i = 0; i < sizeof(values) * 8; i++) {
+    for (uint8_t i = 0; i < sizeof(values) * 8; i++) {
         if ((pin_gr_ptr->num >> i) & 1) {
             out_values &= ~(1 << i);
             out_values |= ((values >> cnt++) & 1) << i;
@@ -306,6 +308,15 @@ void abst_delay_ms(uint64_t miliseconds)
     while (abst_time_ms() < stp_time)
         abst_sleep_wfi();
     abst_stop_sleep();
+}
+/**
+ * Stop program for a given time. NOT FULLY IMPLEMENTED YET
+ *
+ * :param microseconds: Time to wait.
+ */
+void abst_delay_us(uint64_t microseconds)
+{
+    abst_delay_ms((microseconds % 1000) ? (1 + microseconds / 1000) : (microseconds / 1000));
 }
 
 /**

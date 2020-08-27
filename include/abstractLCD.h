@@ -2,14 +2,10 @@
 #define _ABSTRACT_LCD_H_
 
 #include "abstractSTM32.h"
-#include <bits/stdint-intn.h>
-#include <bits/stdint-uintn.h>
-#include <cstdint>
-
 /**
  * Struct for storing data about LCD (For prototype was taken WH1602B-NYG-CT)
  */
-struct lcd {
+struct abst_lcd {
     /** Port ID. Can be GPIOA...GPIOK */
     uint8_t port : 4;
 
@@ -49,35 +45,35 @@ struct lcd {
      * If NULL is set delay_us will be used.
      * If both pointers set to NULL functions from AbstractSTM32Fx will be used.
      */
-    void *(delay_ms)(uint32_t);
+    void (*delay_ms)(uint64_t);
 
     /** 
      * Pointer to the microseconds delay function. 
      * If NULL is set delay_ms will be used. 
      * If both pointers set to NULL functions from AbstractSTM32Fx will be used.
      */
-    void *(delay_us)(uint32_t);
+    void (*delay_us)(uint64_t);
 
     /** True if half-byte mode, false overwise */
     uint8_t is_half_byte : 1;
 
     /* Service variable to store VO pin. Must not be modified by user */
-    struct pin _VO_pin_ptr_;
+    struct abst_pin *_VO_pin_ptr_;
 
     /* Service variable to store RC pin. Must not be modified by user */
-    struct pin _RC_pin_ptr_;
+    struct abst_pin *_RC_pin_ptr_;
 
     /* Service variable to store RW pin. Must not be modified by user */
-    struct pin _RW_pin_ptr_;
+    struct abst_pin *_RW_pin_ptr_;
 
     /* Service variable to store E pin. Must not be modified by user */
-    struct pin _E_pin_ptr_;
+    struct abst_pin *_E_pin_ptr_;
 
     /* Service variable to store LED pin. Must not be modified by user */
-    struct pin _LED_pin_ptr_;
+    struct abst_pin *_LED_pin_ptr_;
 
     /* Service variable to store DB pin group. Must not be modified by user */
-    struct pin_group _DB_group_ptr_;
+    struct abst_pin_group *_DB_group_ptr_;
 };
 
 enum PWM_SETTING {
@@ -86,8 +82,24 @@ enum PWM_SETTING {
     ABST_HARD_PWM
 };
 
-int abst_lcd_init(struct lcd *lcd_ptr);
+int abst_lcd_init(struct abst_lcd *lcd_ptr);
 
-int __attribute__ ((weak)) _abst_lcd_connect_half_byte(struct lcd *lcd_ptr);
+void _abst_lcd_connect_half_byte(struct abst_lcd *lcd_ptr);
+
+void _abst_lcd_connect_byte(struct abst_lcd *lcd_ptr);
+
+void abst_lcd_clear_disp(const struct abst_lcd *lcd_ptr);
+
+void abst_lcd_disp_contr(const struct abst_lcd *lcd_ptr, 
+                         bool display, 
+                         bool cursor, 
+                         bool blinking);
+
+void abst_lcd_entery_mode_set(const struct abst_lcd *lcd_ptr, bool curs_dir, bool disp_shift);
+
+void abst_lcd_function_set(const struct abst_lcd *lcd_ptr, 
+                           bool interface, 
+                           bool lines_num, 
+                           bool font_type);
 
 #endif // _ABSTRACT_LCD_H_

@@ -1,3 +1,5 @@
+PROFILE ?= release
+
 BUILD_DIR := ./build
 PREFIX		?= arm-none-eabi-
 
@@ -20,7 +22,7 @@ build:
 	$(MAKE) -f $(LIB_MAKES) PREFIX="$(PREFIX)"
 
 shared:
-	$(MAKE) -f $(LIB_MAKES) PREFIX="$(PREFIX)" shared
+	$(MAKE) -f $(LIB_MAKES) PREFIX="$(PREFIX)" PROFILE=$(PROFILE) shared
 
 clean:
 	$(Q)rm -fr $(BUILD_DIR)

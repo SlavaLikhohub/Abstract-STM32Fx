@@ -133,6 +133,8 @@ void abst_gpio_init(const struct abst_pin *pin_ptr);
 
 void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr);
 
+void abst_sys_tick_handler(void);
+
 void abst_digital_write(const struct abst_pin *pin_ptr, bool value);
 
 void abst_group_digital_write(const struct abst_pin_group *pin_gr_ptr, uint16_t values);
@@ -150,6 +152,8 @@ bool abst_stop_pwm_soft(struct abst_pin *pin_ptr);
 uint16_t abst_adc_read(struct abst_pin *pin_ptr);
 
 void abst_delay_ms(uint64_t miliseconds);
+
+void abst_delay_us(uint64_t microseconds);
 
 void abst_sleep_wfi(void);
 
