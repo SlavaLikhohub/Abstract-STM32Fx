@@ -14,7 +14,7 @@ enum abst_errors {
 /**
  * Struct for storing data about pin
  */
-struct pin {  
+struct abst_pin {  
     /** GPIO Port ID. Can be GPIOA...GPIOK */
     uint8_t port : 4;
     
@@ -68,7 +68,7 @@ struct pin {
 /**
  * Struct for storing data about a pin group
  */
-struct pin_group {  
+struct abst_pin_group {  
     /** GPIO Port ID. Can be GPIOA...GPIOK */
     uint8_t port : 4;
     
@@ -129,27 +129,25 @@ enum abst_pin_port {
 
 void abst_init(uint32_t ahb);
 
-void abst_gpio_init(const struct pin *pin_ptr);
+void abst_gpio_init(const struct abst_pin *pin_ptr);
 
-void abst_group_gpio_init(const struct pin_group *pin_gr_ptr);
+void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr);
 
-// inline void abst_sys_tick_handler(void);
+void abst_digital_write(const struct abst_pin *pin_ptr, bool value);
 
-void abst_digital_write(const struct pin *pin_ptr, bool value);
+void abst_group_digital_write(const struct abst_pin_group *pin_gr_ptr, uint16_t values);
 
-void abst_group_digital_write(const struct pin_group *pin_gr_ptr, uint16_t values);
+void abst_toggle(const struct abst_pin *pin_ptr);
 
-void abst_toggle(const struct pin *pin_ptr);
+bool abst_digital_read(const struct abst_pin *pin_ptr);
 
-bool abst_digital_read(const  struct pin *pin_ptr);
+uint16_t abst_group_digital_read(const struct abst_pin_group *pin_gr_ptr);
 
-uint16_t abst_group_digital_read(const struct pin_group *pin_gr_ptr);
+void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value);
 
-void abst_pwm_soft(struct pin *pin_ptr, uint8_t value);
+bool abst_stop_pwm_soft(struct abst_pin *pin_ptr);
 
-bool abst_stop_pwm_soft(struct pin *pin_ptr);
-
-uint16_t abst_adc_read(struct pin *pin_ptr);
+uint16_t abst_adc_read(struct abst_pin *pin_ptr);
 
 void abst_delay_ms(uint64_t miliseconds);
 

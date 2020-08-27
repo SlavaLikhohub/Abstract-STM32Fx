@@ -61,6 +61,21 @@ struct lcd {
     /** True if half-byte mode, false overwise */
     uint8_t is_half_byte : 1;
 
+    /* Service variable to store VO pin. Must not be modified by user */
+    struct pin _VO_pin_ptr_;
+
+    /* Service variable to store RC pin. Must not be modified by user */
+    struct pin _RC_pin_ptr_;
+
+    /* Service variable to store RW pin. Must not be modified by user */
+    struct pin _RW_pin_ptr_;
+
+    /* Service variable to store E pin. Must not be modified by user */
+    struct pin _E_pin_ptr_;
+
+    /* Service variable to store LED pin. Must not be modified by user */
+    struct pin _LED_pin_ptr_;
+
     /* Service variable to store DB pin group. Must not be modified by user */
     struct pin_group _DB_group_ptr_;
 };

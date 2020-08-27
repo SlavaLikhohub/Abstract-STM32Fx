@@ -39,14 +39,14 @@ static void abst_soft_pwm_hander(void)
     // Reset all in first tick
     if (_pwm_cnt_ == 0) {
         while (node = list_iterator_next(it)) {
-            const struct pin * pin_ptr = node->val;
+            const struct abst_pin * pin_ptr = node->val;
             // If __pwm_value == 0 don't turn on the pin
             abst_digital_write(pin_ptr, pin_ptr->__pwm_value);
         }
     }
     else {
         while (node = list_iterator_next(it)) {
-            const struct pin * pin_ptr = node->val;
+            const struct abst_pin * pin_ptr = node->val;
             if (pin_ptr->__pwm_value == _pwm_cnt_)
                 abst_digital_write(pin_ptr, 0);
         }
@@ -137,9 +137,9 @@ void __attribute__ ((weak)) sys_tick_handler(void)
 /**
  * Initialize the pin with the setting that specified in struct pin.
  * 
- * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  */
-void abst_gpio_init(const struct pin *pin_ptr)
+void abst_gpio_init(const struct abst_pin *pin_ptr)
 {
     uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
 
@@ -159,9 +159,9 @@ void abst_gpio_init(const struct pin *pin_ptr)
 /**
  * Initialize the pin group with the setting that specified in struct pin.
  * 
- * :param pin_gr_ptr: Pointer to :c:type:`pin_group` with filled parameters.
+ * :param pin_gr_ptr: Pointer to :c:type:`abst_pin_group` with filled parameters.
  */
-void abst_group_gpio_init(const struct pin_group *pin_gr_ptr)
+void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
 {
     uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
 
@@ -181,10 +181,10 @@ void abst_group_gpio_init(const struct pin_group *pin_gr_ptr)
 /**
  * Set value at the output of the pin.
  * 
- * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
- * :param value: The value to set. If is_inverse flag in struc pin is true value will be inversed.
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
+ * :param value: The value to set. If is_inverse flag in :c:type:`abst_pin` is true value will be inversed.
  */
-void abst_digital_write(const struct pin *pin_ptr, bool value)
+void abst_digital_write(const struct abst_pin *pin_ptr, bool value)
 {
     uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
     value ^= pin_ptr->is_inverse;
@@ -197,10 +197,10 @@ void abst_digital_write(const struct pin *pin_ptr, bool value)
 /**
  * Set value at the output of the pin group.
  * 
- * :param pin_gr_ptr: Pointer to :c:type:`pin_group` struct with filled parameters.
- * :param value: The value to set. If is_inverse flag in struc pin is true value will be inversed.
+ * :param pin_gr_ptr: Pointer to :c:type:`abst_pin_group` struct with filled parameters.
+ * :param value: The value to set. If is_inverse flag in :c:type:`abst_pin_group` is true value will be inversed.
  */
-void abst_group_digital_write(const struct pin_group *pin_gr_ptr, uint16_t values)
+void abst_group_digital_write(const struct abst_pin_group *pin_gr_ptr, uint16_t values)
 {
     uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
     
@@ -223,9 +223,9 @@ void abst_group_digital_write(const struct pin_group *pin_gr_ptr, uint16_t value
 /**
  * Toggle value of a pin 
  *
- * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  */
-void abst_toggle(const struct pin *pin_ptr)
+void abst_toggle(const struct abst_pin *pin_ptr)
 {
     gpio_toggle(ab_opencm_port_conv(pin_ptr->port), 1 << pin_ptr->num);
 }
@@ -233,10 +233,10 @@ void abst_toggle(const struct pin *pin_ptr)
 /**
  * Read value from the pin via the input driver.
  *
- * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  * :return: Read value.
  */
-bool abst_digital_read(const struct pin *pin_ptr)
+bool abst_digital_read(const struct abst_pin *pin_ptr)
 {
     return gpio_get(ab_opencm_port_conv(pin_ptr->port), 1 << pin_ptr->num) ^ pin_ptr->is_inverse;
 }
@@ -244,10 +244,10 @@ bool abst_digital_read(const struct pin *pin_ptr)
 /**
  * Read value from pins in a group via the input driver.
  *
- * :param pin_gr_ptr: Pointer to :c:type:`pin_group` with filled parameters.
+ * :param pin_gr_ptr: Pointer to :c:type:`abst_pin_group` with filled parameters.
  * :return: Read bitmap.
  */
-uint16_t abst_group_digital_read(const struct pin_group *pin_gr_ptr)
+uint16_t abst_group_digital_read(const struct abst_pin_group *pin_gr_ptr)
 {
     uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
     uint16_t values = gpio_port_read(opencm_port);
@@ -258,10 +258,10 @@ uint16_t abst_group_digital_read(const struct pin_group *pin_gr_ptr)
 /**
  * Set Pulse Wide Modulation (PWM) at the pin. When PWM should be stopped call :c:func:`abst_stop_pwm_soft`
  *
- * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  * :param value: the duty cycle: between 0 (always off) and 255 (always on).
  */
-void abst_pwm_soft(struct pin *pin_ptr, uint8_t value)
+void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value)
 {
     pin_ptr->__pwm_value = value;
     if (!list_find(soft_pwm_list, pin_ptr))
@@ -270,10 +270,10 @@ void abst_pwm_soft(struct pin *pin_ptr, uint8_t value)
 /**
  * Stop PWM on the pin.
  *
- * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  * :return: true if operation successful, false if pin was not found in list of pins with PWM
  */
-bool abst_stop_pwm_soft(struct pin *pin_ptr)
+bool abst_stop_pwm_soft(struct abst_pin *pin_ptr)
 {
     list_node_t *list_pin = list_find(soft_pwm_list, pin_ptr);
     if (!list_pin)
@@ -287,10 +287,10 @@ bool abst_stop_pwm_soft(struct pin *pin_ptr)
 /**
  * Read analog value from the pin via the Analog to Digital Converter (!) TODO 
  *
- * :param pin_ptr: Pointer to :c:type:`pin` with filled parameters.
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  * :return: Read value (12 bit)
  */
-uint16_t abst_adc_read(struct pin *pin_ptr)
+uint16_t abst_adc_read(struct abst_pin *pin_ptr)
 {
     return ABST_NOT_IMPLEMENTED;
 }
