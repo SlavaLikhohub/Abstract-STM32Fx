@@ -219,7 +219,7 @@ void __attribute__ ((weak)) _abst_lcd_connect_half_byte(struct abst_lcd *lcd_ptr
 
     // Function set
     uint8_t DL = 0; // 4-bit interface
-    uint8_t N = 0; // Number of lines = 2
+    uint8_t N = 1; // Number of lines = 2
     uint8_t F = 0; // Font type = 5x8
     abst_lcd_function_set(lcd_ptr, DL, N, F);
 
@@ -309,4 +309,86 @@ void abst_lcd_function_set(const struct abst_lcd *lcd_ptr,
 {
     rc_rw_control(lcd_ptr, 0, 0);
     send_message(lcd_ptr, 1 << 5 | interface << 4 | lines_num  << 3 | font_type << 2);
+}
+
+/**
+ * Put char to LCD.
+ *
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
+ * initialized by :c:func:abst_lcd_init:.
+ * :param ch: Char to put.
+ */
+void abst_lcd_put_char(const struct abst_lcd *lcd_ptr, const char ch)
+{
+    rc_rw_control(lcd_ptr, 1, 0);
+    send_message(lcd_ptr, ch);
+}
+
+/**
+ * Put string to LCD.
+ *
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
+ * initialized by :c:func:abst_lcd_init:.
+ * :param ch: Null terminated string to put.
+ */
+void abst_lcd_put_str(const struct abst_lcd *lcd_ptr, char *str)
+{
+    abst_lcd_put_str_sm(lcd_ptr, str, 0);
+}
+
+/**
+ * Put string to LCD smootly (with delay between putting chars).
+ *
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
+ * initialized by :c:func:abst_lcd_init:.
+ * :param ch: Null terminated string to put.
+ * :param interval_ms: Interval between putting chars in miliseconds.
+ */
+void abst_lcd_put_str_sm(const struct abst_lcd *lcd_ptr, char *str, uint32_t interval_ms)
+{
+    while (*str != '\0') {
+        abst_lcd_put_char(lcd_ptr, *str);
+        str++;
+
+        lcd_delay(lcd_ptr, interval_ms * 1000);
+    }
+}
+
+/**
+ * Set cursor to the given position.
+ * 
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
+ * initialized by :c:func:abst_lcd_init:.
+ * :param row: Row to set. Starts from 0.
+ * :param column: Column to set. Starts from 0.
+ */
+void abst_lcd_set_cursor(const struct abst_lcd *lcd_ptr, uint8_t row, uint8_t column)
+{
+    rc_rw_control(lcd_ptr, 0, 0);
+
+    column += 1; // To make count from 0
+
+    // Address in hexadecimal
+    uint8_t addr = row * 0x27 + column;
+    send_message(lcd_ptr, 1 << 7 | addr);
+}
+/**
+ * Set brightness of LCD's LED
+ * 
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
+ * initialized by :c:func:abst_lcd_init:.
+ * :param lvl: Level of brightness (0-255). 
+ * If pwm_setting == ABST_NO_PWM value will be converted to bool.
+ */
+void abst_lcd_set_led(const struct abst_lcd *lcd_ptr, uint8_t lvl)
+{
+    if (lcd_ptr->_LED_pin_ptr_ == NULL)
+        return;
+    
+    if (lcd_ptr->pwm_setting == ABST_NO_PWM)
+        abst_digital_write(lcd_ptr->_LED_pin_ptr_, (bool)lvl);
+    else if (lcd_ptr->pwm_setting == ABST_SOFT_PWM)
+        abst_pwm_soft(lcd_ptr->_LED_pin_ptr_, lvl);
+    else if (lcd_ptr->pwm_setting == ABST_HARD_PWM)
+        abst_pwm_hard(lcd_ptr->_LED_pin_ptr_, lvl);
 }

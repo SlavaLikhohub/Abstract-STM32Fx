@@ -147,6 +147,8 @@ uint16_t abst_group_digital_read(const struct abst_pin_group *pin_gr_ptr);
 
 void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value);
 
+void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value); // TODO
+
 bool abst_stop_pwm_soft(struct abst_pin *pin_ptr);
 
 uint16_t abst_adc_read(struct abst_pin *pin_ptr);

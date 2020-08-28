@@ -102,4 +102,14 @@ void abst_lcd_function_set(const struct abst_lcd *lcd_ptr,
                            bool lines_num, 
                            bool font_type);
 
+void abst_lcd_put_char(const struct abst_lcd *lcd_ptr, const char ch);
+
+void abst_lcd_put_str(const struct abst_lcd *lcd_ptr, char *str);
+
+void abst_lcd_set_cursor(const struct abst_lcd *lcd_ptr, uint8_t row, uint8_t column);
+
+void abst_lcd_put_str_sm(const struct abst_lcd *lcd_ptr, char *str, uint32_t interval_ms);
+
+void abst_lcd_set_led(const struct abst_lcd *lcd_ptr, uint8_t lvl);
+
 #endif // _ABSTRACT_LCD_H_

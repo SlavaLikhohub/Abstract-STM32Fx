@@ -286,6 +286,12 @@ bool abst_stop_pwm_soft(struct abst_pin *pin_ptr)
     return true;
 }
 
+// TODO
+void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value)
+{
+    return;
+}
+
 /**
  * Read analog value from the pin via the Analog to Digital Converter (!) TODO 
  *
