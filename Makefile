@@ -1,5 +1,8 @@
 PROFILE ?= release
 
+DOC_DIR = doc
+DOC_FORMAT = html
+
 BUILD_DIR := ./build
 PREFIX		?= arm-none-eabi-
 
@@ -26,5 +29,10 @@ shared:
 
 clean:
 	$(Q)rm -fr $(BUILD_DIR)
+	$(Q)cd $(DOC_DIR) && $(MAKE) clean
 
-.PHONY: clean build shared
+documentation:
+	$(Q)cd $(DOC_DIR) && $(MAKE) $(DOC_FORMAT)
+	$(Q)ln -sf build/html/index.html $(DOC_DIR)/abstractSTM32.html
+
+.PHONY: clean build shared documentation

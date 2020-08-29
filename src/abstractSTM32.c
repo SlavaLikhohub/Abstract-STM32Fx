@@ -96,14 +96,19 @@ static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
  * Initialize the library. 1) Reset global variables 2) Start systick
  *
  * :param ahb: The current AHB frequency in Hz. 
- * If frequency changes reinit library with different value. Note: All global variables will be reset.
+ * If frequency changes reinit library with different value.
  */
 void abst_init(uint32_t anb)
 {
-    _time_ticks_ = 0;
-    _pwm_cnt_ = 0;
-    _sleep_ = false;
-    soft_pwm_list = list_new();
+    static bool _inited_ = false;
+    if (!_inited_) {
+        _time_ticks_ = 0;
+        _pwm_cnt_ = 0;
+        _sleep_ = false;
+        soft_pwm_list = list_new();
+
+        _inited_ = true;
+    }
 
     // SYSTICK for delays and PWMs
     systick_counter_disable();
@@ -327,7 +332,7 @@ void abst_delay_us(uint64_t microseconds)
 
 /**
  * Go to wait for interruption mode and set :c:data:`_sleep_` to true.
- * After interrupt by which microcontroller should be woken up permanentry call :c:func:`stop_sleep`.
+ * After interrupt by which microcontroller should be woken up permanentry call :c:func:`abst_stop_sleep`.
  */
 void abst_sleep_wfi(void)
 {
@@ -343,7 +348,7 @@ void abst_stop_sleep(void)
     _sleep_ = false;
 }
 /**
- * Get time from Initialization in miliseconds. Timer overflow in 4 days 23 hours 18 minutes 
+ * Get time from Initialization in miliseconds. Timer overflows in 4 days 23 hours 18 minutes 
  *
  * :return: Time in miliseconds
  */

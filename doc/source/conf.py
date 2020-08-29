@@ -38,7 +38,7 @@ author = 'Viacheslav Lykhohub'
 extensions = [
     'hawkmoth'
 ]
-# Hawknoth autodoc style
+# Default autodoc style
 cautodoc_compat = 'kernel-doc'
 
 # Path to the root of the C source files
@@ -46,7 +46,7 @@ cautodoc_root = str(projdir)
 
 # Overrite :clang: in c:autodoc
 cautodoc_clang = '-I/lib/clang/10.0.0/include,-DHAWKMOTH'
-cautodoc_clang += ',-I../inc,-I../client/inc,-std=gnu17'
+cautodoc_clang += ',-I../inc,-std=gnu17'
 libs = []
 
 if (libs):
@@ -73,7 +73,7 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'bizstyle'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

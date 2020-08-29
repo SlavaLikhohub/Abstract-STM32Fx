@@ -3,14 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to AbstractSTM32Fx's documentation!
+AbstractSTM32Fx's documentation!
 ===========================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   abstractSTM.rst
 
+   abstractLCD.rst
 
 Indices and tables
 ==================
@@ -18,5 +20,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-.. c:autodoc:: include/*.h src/*.c

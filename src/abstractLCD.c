@@ -103,7 +103,7 @@ static void rc_rw_control(const struct abst_lcd *lcd_ptr, bool RC, bool RW)
 /*
  * Helper function to send a byte to LCD. Using in case of 8-bit interface
  *
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param data: A byte to be send.
  */
 static void send_byte(const struct abst_lcd *lcd_ptr, uint8_t data)
@@ -118,7 +118,7 @@ static void send_byte(const struct abst_lcd *lcd_ptr, uint8_t data)
 /*
  * Helper function to send half of a byte to LCD. Using in case of 4-bit interface
  *
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param data: Half of a byte to be send.
  */
 static void send_half_byte(const struct abst_lcd *lcd_ptr, uint8_t data)
@@ -131,7 +131,7 @@ static void send_half_byte(const struct abst_lcd *lcd_ptr, uint8_t data)
  * Helper function to send 1 byte of data or command to lcd. 
  * This function does not control RS and RW pins, only DB pins.
  * 
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param data: Byte of data to be send.
  */
 static void send_message(const struct abst_lcd *lcd_ptr, uint8_t data)
@@ -152,7 +152,7 @@ static void send_message(const struct abst_lcd *lcd_ptr, uint8_t data)
  * :return: Error code acording to the :c:type:`abst_errors`.
  *
  * If LCD with another connecting protocol is used redefine 
- * :c:func:_abst_lcd_connect_half_byte: or :c:func:_abst_lcd_connect_byte:.
+ * :c:func:`_abst_lcd_connect_half_byte` or :c:func:`_abst_lcd_connect_byte`.
  */
 int abst_lcd_init(struct abst_lcd *lcd_ptr)
 {
@@ -250,8 +250,7 @@ void __attribute__ ((weak)) _abst_lcd_connect_byte(struct abst_lcd *lcd_ptr)
  * (in the first line if 2 lines are displayed). It also sets I/D to 1 (increment mode)
  * in entry mode. S of entry mode does not change.
  *
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  */
 void abst_lcd_clear_disp(const struct abst_lcd *lcd_ptr)
 {
@@ -263,8 +262,7 @@ void abst_lcd_clear_disp(const struct abst_lcd *lcd_ptr)
 /**
  * Display control
  * 
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param display: Display ON/OFF
  * :param cursor:  Cursor ON/OFF
  * :param blinking: Cursor blinking ON/OFF
@@ -281,8 +279,7 @@ void abst_lcd_disp_contr(const struct abst_lcd *lcd_ptr,
 /**
  * Entery mode set
  * 
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param curs_dir: Cursor direction (1 - increment, 0 - decrement)
  * :param disp_shift: Shifts the entire display either to the right (I/D = 0) 
  * or to the left (I/D = 1) when S is 1 while printing new chars if this parameter is 1.
@@ -296,8 +293,7 @@ void abst_lcd_disp_contr(const struct abst_lcd *lcd_ptr,
 /**
  * Function set. Do not call this function outside lcd initialization.
  *
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param interface: Interface of comunication (0 - 8 bit, 1 - 4 bit ?check me?)
  * :param lines_num: Number of lines (0 - one line, 1 - 2 lines ?check me?). 
  * :param font_type: Font type (0 - 5x11, 1 - 5x8 ?check me?)
@@ -314,8 +310,7 @@ void abst_lcd_function_set(const struct abst_lcd *lcd_ptr,
 /**
  * Put char to LCD.
  *
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param ch: Char to put.
  */
 void abst_lcd_put_char(const struct abst_lcd *lcd_ptr, const char ch)
@@ -327,8 +322,7 @@ void abst_lcd_put_char(const struct abst_lcd *lcd_ptr, const char ch)
 /**
  * Put string to LCD.
  *
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param ch: Null terminated string to put.
  */
 void abst_lcd_put_str(const struct abst_lcd *lcd_ptr, char *str)
@@ -339,8 +333,7 @@ void abst_lcd_put_str(const struct abst_lcd *lcd_ptr, char *str)
 /**
  * Put string to LCD smootly (with delay between putting chars).
  *
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param ch: Null terminated string to put.
  * :param interval_ms: Interval between putting chars in miliseconds.
  */
@@ -357,8 +350,7 @@ void abst_lcd_put_str_sm(const struct abst_lcd *lcd_ptr, char *str, uint32_t int
 /**
  * Set cursor to the given position.
  * 
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param row: Row to set. Starts from 0.
  * :param column: Column to set. Starts from 0.
  */
@@ -375,8 +367,7 @@ void abst_lcd_set_cursor(const struct abst_lcd *lcd_ptr, uint8_t row, uint8_t co
 /**
  * Set brightness of LCD's LED
  * 
- * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been 
- * initialized by :c:func:abst_lcd_init:.
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
  * :param lvl: Level of brightness (0-255). 
  * If pwm_setting == ABST_NO_PWM value will be converted to bool.
  */

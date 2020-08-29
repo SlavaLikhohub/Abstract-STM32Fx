@@ -5,10 +5,14 @@
 
 /** Error codes */
 enum abst_errors {
-    ABST_OK = 0,
-    ABST_UNKNOWN_ERROR,
-    ABST_WRONG_PARAMS,
-    ABST_NOT_IMPLEMENTED
+    /** Ok */
+    ABST_OK = 0, 
+    /** Unknown error */
+    ABST_UNKNOWN_ERROR = -1, 
+    /** Wrong parameters */
+    ABST_WRONG_PARAMS = -2, 
+    /** Not implemented yet */
+    ABST_NOT_IMPLEMENTED = -3 
 };
 
 /**
@@ -58,9 +62,9 @@ struct abst_pin {
      */
     uint8_t is_inverse : 1;
 
-    /**
+    /*
      * Service variable: Must not be changed by user.
-     * Used to save PWM value on the pin and used by :c:func:`abst_soft_pwm_hander`
+     * Used to save PWM value on the pin and used by :c:func:`abst_pwm_soft`
      */
     uint8_t __pwm_value;
 };
@@ -147,9 +151,9 @@ uint16_t abst_group_digital_read(const struct abst_pin_group *pin_gr_ptr);
 
 void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value);
 
-void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value); // TODO
-
 bool abst_stop_pwm_soft(struct abst_pin *pin_ptr);
+
+void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value); // TODO
 
 uint16_t abst_adc_read(struct abst_pin *pin_ptr);
 
