@@ -27,16 +27,10 @@ struct abst_pin {
     
     /** 
      * GPIO Pin direction 
-     * Can be GPIO_MODE_INPUT, GPIO_MODE_OUTPUT
-     */
-    uint8_t dir : 2;
-
-    /** 
-     * GPIO Pin Analog/Digital Mode 
-     * Can be GPIO_MODE_AF, GPIO_MODE_ANALOG 
+     * Can be GPIO_MODE_INPUT, GPIO_MODE_OUTPUT, GPIO_MODE_AF, GPIO_MODE_ANALOG
      */
     uint8_t mode : 2;
-    
+
     /**
      * GPIO Output Pin Driver Type
      * Can be GPIO_OTYPE_OD (open drain), GPIO_OTYPE_PP (push pull)
@@ -81,16 +75,10 @@ struct abst_pin_group {
     
     /** 
      * GPIO Pins direction 
-     * Can be GPIO_MODE_INPUT, GPIO_MODE_OUTPUT
-     */
-    uint8_t dir : 2;
-
-    /** 
-     * GPIO Pins Analog/Digital Mode 
-     * Can be GPIO_MODE_AF, GPIO_MODE_ANALOG 
+     * Can be GPIO_MODE_INPUT, GPIO_MODE_OUTPUT, GPIO_MODE_AF, GPIO_MODE_ANALOG
      */
     uint8_t mode : 2;
-    
+
     /**
      * GPIO Output Pins Driver Type
      * Can be GPIO_OTYPE_OD (open drain), GPIO_OTYPE_PP (push pull)

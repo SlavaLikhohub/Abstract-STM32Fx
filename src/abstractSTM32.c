@@ -152,7 +152,7 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
 
     rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr->port));
     gpio_mode_setup(opencm_port, 
-                    pin_ptr->dir | pin_ptr->mode, 
+                    pin_ptr->mode, 
                     pin_ptr->pull_up_down, 
                     1 << pin_ptr->num);
     
@@ -175,7 +175,7 @@ void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
     rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_gr_ptr->port));
 
     gpio_mode_setup(opencm_port, 
-                    pin_gr_ptr->dir | pin_gr_ptr->mode, 
+                    pin_gr_ptr->mode, 
                     pin_gr_ptr->pull_up_down, 
                     pin_gr_ptr->num);
     
