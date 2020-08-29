@@ -6,10 +6,11 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-const uint16_t ABST_LCD_E_HOLD = 1 * 10; // us. Datasheet asks for 140 ns.
-const uint16_t ABST_LCD_DATA_HOLD = 1 * 10; // us. Datasheet asks for 40 ns.
-const uint16_t ABDT_LCD_RET_HOME = 1700 * 10; // us. Datasheet asks for 1520 us.
-const uint16_t ABST_LCD_COM_EXEC = 50 * 10; // us.  Datasheet asks for 37 (+4) us.
+const uint16_t ABST_LCD_E_HOLD = 1; // us. Datasheet asks for 140 ns.
+const uint16_t ABST_LCD_DATA_HOLD = 1; // us. Datasheet asks for 40 ns.
+const uint16_t ABDT_LCD_RET_HOME = 1700; // us. Datasheet asks for 1520 us.
+const uint16_t ABST_LCD_COM_EXEC = 50; // us.  Datasheet asks for 37 (+4) us.
+const uint16_t ABST_LCD_START_TIME = 5000; // us.
 
 /*
  * Helper function that configure pin from data specified by the user.
@@ -27,8 +28,7 @@ static struct abst_pin *conf_pin_out(uint8_t port, int32_t num)
     *result = (struct abst_pin){
         .port = port,
         .num = num,
-        .dir = GPIO_MODE_OUTPUT,
-        .mode = 0,
+        .mode = GPIO_MODE_OUTPUT,
         .otype = GPIO_OTYPE_PP,
         .speed = GPIO_OSPEED_50MHZ,
         .pull_up_down = GPIO_PUPD_PULLUP,
@@ -51,8 +51,7 @@ static struct abst_pin_group *conf_pin_group_out(uint8_t port, uint16_t num)
     *result = (struct abst_pin_group){
         .port = port,
         .num = num,
-        .dir = GPIO_MODE_OUTPUT,
-        .mode = 0,
+        .mode = GPIO_MODE_OUTPUT,
         .otype = GPIO_OTYPE_PP,
         .speed = GPIO_OSPEED_50MHZ,
         .pull_up_down = GPIO_PUPD_NONE,
@@ -207,6 +206,9 @@ int abst_lcd_init(struct abst_lcd *lcd_ptr)
  */
 void __attribute__ ((weak)) _abst_lcd_connect_half_byte(struct abst_lcd *lcd_ptr)
 {
+    while (abst_time_ms() < ABST_LCD_START_TIME / 1000)
+        lcd_delay(lcd_ptr, 1e3);
+
     rc_rw_control(lcd_ptr, 0, 0);
 
     send_half_byte(lcd_ptr, 0b0011);
