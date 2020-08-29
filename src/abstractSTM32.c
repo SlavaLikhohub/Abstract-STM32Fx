@@ -146,6 +146,7 @@ void __attribute__ ((weak)) sys_tick_handler(void)
  * 
  * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  */
+#ifdef STM32F4
 void abst_gpio_init(const struct abst_pin *pin_ptr)
 {
     uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
@@ -162,6 +163,42 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
                             1 << pin_ptr->num);
     abst_digital_write(pin_ptr, 0);
 }
+#endif
+#ifdef STM32F1
+void abst_gpio_init(const struct abst_pin *pin_ptr)
+{
+    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
+
+    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr->port));
+
+    uint8_t f1_mode = GPIO_MODE_INPUT; // Default
+    
+    if (pin_ptr->mode == GPIO_MODE_INPUT)
+        f1_mode = GPIO_MODE_INPUT;
+    else if (pin_ptr->speed == GPIO_OSPEED_2MHZ)
+        f1_mode = GPIO_MODE_OUTPUT_2_MHZ;
+    else if (pin_ptr->speed >= GPIO_OSPEED_25MHZ) // Impossible to set 25 MHz or greater than 50 MHz
+        f1_mode = GPIO_MODE_OUTPUT_50_MHZ;
+    
+    uint8_t f1_cnf = GPIO_CNF_INPUT_FLOAT; // Default
+     if (pin_ptr->mode == GPIO_MODE_ANALOG || 
+            (pin_ptr->mode->GPIO_MODE_OUTPUT && pin->otype == GPIO_OTYPE_PP))
+        f1_cnf = GPIO_CNF_INPUT_ANALOG; // = GPIO_CNF_OUTPUT_PUSHPULL
+    
+    else if ((pin_ptr->mode == GPIO_MODE_INPUT || pin_ptr->mode == GPIO_MODE_OUTPUT) 
+            && pin->otype == GPIO_OTYPE_OD)
+        f1_cnf = GPIO_CNF_INPUT_FLOAT; // = GPIO_CNF_OUTPUT_OPENDRAIN
+
+    else if ((pin_ptr->mode == GPIO_MODE_INPUT || pin_ptr->mode == GPIO_MODE_AF)
+            && pin->otype == GPIO_OTYPE_PP)
+        f1_cnf = GPIO_CNF_INPUT_PULL_UPDOWN; // = GPIO_CNF_OUTPUT_ALTFN_PUSHPULL
+    
+    else if (pin->mode == GPIO_MODE_AF && pin->otype == GPIO_OTYPE_OD)
+        f1_cnf = GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN;
+
+    gpio_set_mode(opencm_port, f1_mode, f1_cnf, 1 << pin_ptr->num);
+}
+#endif
 
 /**
  * Initialize the pin group with the setting that specified in struct pin.
