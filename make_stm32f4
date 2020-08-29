@@ -26,5 +26,3 @@ TGT_CFLAGS	+= -Wall -Wextra -Wimplicit-function-declaration \
 TGT_CFLAGS  += $(DEBUG_FLAGS)
 TGT_CFLAGS	+= $(STANDARD_FLAGS)
 ARFLAGS		= rcs
-
-include Makefile.include

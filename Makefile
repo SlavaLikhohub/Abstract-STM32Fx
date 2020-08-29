@@ -3,8 +3,20 @@ PROFILE ?= release
 DOC_DIR = doc
 DOC_FORMAT = html
 
-BUILD_DIR := ./build
 PREFIX		?= arm-none-eabi-
+
+DEBUG_FLAGS ?= -ggdb3
+STANDARD_FLAGS ?= -std=gnu17
+BUILD_DIR := ./build
+SRC_DIR := ./src
+INC_DIRS := ./include
+SOURCES := abstractSTM32.c
+SOURCES += abstractLCD.c
+
+CC		= $(PREFIX)gcc
+AR		= $(PREFIX)ar
+
+LIB_DIR ?= lib
 
 TARGETS := stm32f4 # Now only F4, but at least the F1 version is planned as well
 MAKE_FILE_PREFIX = make_
@@ -16,13 +28,15 @@ ifneq ($(V),1)
 Q := @
 endif
 
-all: build
-
-
 LIB_MAKES:=$(addprefix $(MAKE_FILE_PREFIX),$(TARGETS))
-build:
-	@echo call $(LIB_MAKES) Makefiles
-	$(MAKE) -f $(LIB_MAKES) PREFIX="$(PREFIX)"
+
+# Platform specific variables
+include $(LIB_MAKES)
+
+# Compiling and linling library
+include Makefile.include
+
+all: | $(BUILD_DIR)/libopencm3.a $(BUILD_DIR)/liblist.a $(BUILD_DIR)/$(ABST_LIBNAME).a
 
 shared:
 	$(MAKE) -f $(LIB_MAKES) PREFIX="$(PREFIX)" PROFILE=$(PROFILE) shared
