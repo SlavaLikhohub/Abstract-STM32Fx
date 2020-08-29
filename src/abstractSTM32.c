@@ -1,11 +1,16 @@
 #include "abstractSTM32.h"
 #include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/f4/rcc.h>
+#include <libopencm3/stm32/f4/rcc.h> // Reference sersion
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
 #include <stdint.h>
 #include <list.h>
+
+#ifdef STM32F1
+#include <libopencm3/stm32/f1/rcc.h>
+#endif
+
 
 #define _REG_BIT(base, bit)		(((base) << 5) + (bit))
 

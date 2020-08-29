@@ -1,0 +1,28 @@
+ABST_LIBNAME := libabst_stm32f1
+LIBOPENCM3_TARGET ?= stm32/f1
+
+# Device is required for libopencm3
+DEVICE ?= stm32f103c8t6
+
+FP_FLAGS	?= -mfloat-abi=soft
+
+TGT_CFLAGS = 
+
+ifeq ($(PROFILE),release)
+TGT_CFLAGS += -Os
+endif
+
+ifeq ($(PROFILE),debug)
+TGT_CFLAGS += -O0
+endif
+
+TGT_CFLAGS	+= -Wall -Wextra -Wimplicit-function-declaration \
+		  -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes \
+		  -Wundef -Wshadow \
+		  -fno-common \
+		  -mcpu=cortex-m3 -mthumb $(FP_FLAGS) \
+		  -Wstrict-prototypes \
+		  -ffunction-sections -fdata-sections -MD
+TGT_CFLAGS  += $(DEBUG_FLAGS)
+TGT_CFLAGS	+= $(STANDARD_FLAGS)
+ARFLAGS		= rcs

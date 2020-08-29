@@ -18,7 +18,8 @@ AR		= $(PREFIX)ar
 
 LIB_DIR ?= lib
 
-TARGETS := stm32f4 # Now only F4, but at least the F1 version is planned as well
+TARGETS ?= stm32f1 stm32f4
+
 MAKE_FILE_PREFIX = make_
 # Do not print "Entering directory ...".
 MAKEFLAGS = --no-print-directory
