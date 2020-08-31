@@ -63,9 +63,23 @@ Documentation
 
 Build documentation
 
+To build a documentation install 
+
+#. **Sphinx** with version not more than 2.4.3 (Versions 3.x.x do not support crossreferencing in ``Hawkmoth``)
+
 .. code-block:: shell-session
 
-    make doc
+   pip install sphinx==2.4.3
+
+#. **Hawkmoth** (tested with 0.5 version)
+
+.. code-block:: shell-session
+
+   pip install hawkmoth
+
+.. code-block:: shell-session
+
+   make doc
 
 ``abstractSTM32.html`` link will apear in ``doc`` directory.
 

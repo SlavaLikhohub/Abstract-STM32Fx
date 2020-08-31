@@ -36,6 +36,22 @@
 #ifndef _ABST_LIBOPENCM3_H_
 #define _ABST_LIBOPENCM3_H_
 
+#include <libopencm3/stm32/gpio.h>
 
+#ifdef STM32F1
+#include <libopencm3/stm32/f1/memorymap.h>
+#include <libopencm3/stm32/f1/rcc.h>
+#endif
+
+inline uint32_t _abst_opencm_port_conv(const uint8_t port)
+{
+#ifdef STM32F1
+    // Definition at line 76 of file stm32/f1/memorymap.h.
+    return PERIPH_BASE_APB2 + 0x0400 * (port + 2); 
+#endif
+#ifdef STM32F4
+    return PERIPH_BASE_AHB1 + 0x0400 * port;
+#endif
+}
 
 #endif //_ABST_LIBOPENCM3_H_

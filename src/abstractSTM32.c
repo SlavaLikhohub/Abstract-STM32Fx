@@ -1,6 +1,7 @@
 #include "abstractSTM32.h"
+#include "abst_libopencm3.h"
 #include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/f4/rcc.h> // Reference sersion
+#include <libopencm3/stm32/f4/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
@@ -8,7 +9,7 @@
 #include <list.h>
 
 #ifdef STM32F1
-#include <libopencm3/stm32/f1/rcc.h>
+
 #endif
 
 
@@ -25,11 +26,6 @@ static list_t *soft_pwm_list;
 static uint8_t _pwm_cnt_;
 // Tick every 100 us
 static const uint32_t systick_fr = 1e4;
-
-inline static uint32_t ab_opencm_port_conv(const uint8_t port)
-{
-    return PERIPH_BASE_AHB1 + 0x0400 * port;
-}
 
 inline static uint32_t ab_opencm_rcc_conv(const uint8_t port)
 {
@@ -154,7 +150,7 @@ void __attribute__ ((weak)) sys_tick_handler(void)
 #ifdef STM32F4
 void abst_gpio_init(const struct abst_pin *pin_ptr)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
+    uint32_t opencm_port = _abst_opencm_port_conv(pin_ptr->port);
 
     rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr->port));
     gpio_mode_setup(opencm_port, 
@@ -172,7 +168,7 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
 #ifdef STM32F1
 void abst_gpio_init(const struct abst_pin *pin_ptr)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
+    uint32_t opencm_port = _abst_opencm_port_conv(pin_ptr->port);
 
     rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr->port));
 
@@ -187,18 +183,18 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
     
     uint8_t f1_cnf = GPIO_CNF_INPUT_FLOAT; // Default
      if (pin_ptr->mode == GPIO_MODE_ANALOG || 
-            (pin_ptr->mode->GPIO_MODE_OUTPUT && pin->otype == GPIO_OTYPE_PP))
+            (pin_ptr->mode == GPIO_MODE_OUTPUT && pin_ptr->otype == GPIO_OTYPE_PP))
         f1_cnf = GPIO_CNF_INPUT_ANALOG; // = GPIO_CNF_OUTPUT_PUSHPULL
     
     else if ((pin_ptr->mode == GPIO_MODE_INPUT || pin_ptr->mode == GPIO_MODE_OUTPUT) 
-            && pin->otype == GPIO_OTYPE_OD)
+            && pin_ptr->otype == GPIO_OTYPE_OD)
         f1_cnf = GPIO_CNF_INPUT_FLOAT; // = GPIO_CNF_OUTPUT_OPENDRAIN
 
     else if ((pin_ptr->mode == GPIO_MODE_INPUT || pin_ptr->mode == GPIO_MODE_AF)
-            && pin->otype == GPIO_OTYPE_PP)
+            && pin_ptr->otype == GPIO_OTYPE_PP)
         f1_cnf = GPIO_CNF_INPUT_PULL_UPDOWN; // = GPIO_CNF_OUTPUT_ALTFN_PUSHPULL
     
-    else if (pin->mode == GPIO_MODE_AF && pin->otype == GPIO_OTYPE_OD)
+    else if (pin_ptr->mode == GPIO_MODE_AF && pin_ptr->otype == GPIO_OTYPE_OD)
         f1_cnf = GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN;
 
     gpio_set_mode(opencm_port, f1_mode, f1_cnf, 1 << pin_ptr->num);
@@ -212,7 +208,7 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
  */
 void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
+    uint32_t opencm_port = _abst_opencm_port_conv(pin_gr_ptr->port);
 
     rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_gr_ptr->port));
 
@@ -235,7 +231,7 @@ void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
  */
 void abst_digital_write(const struct abst_pin *pin_ptr, bool value)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin_ptr->port);
+    uint32_t opencm_port = _abst_opencm_port_conv(pin_ptr->port);
     value ^= pin_ptr->is_inverse;
     if (value)
         gpio_set(opencm_port, 1 << pin_ptr->num);
@@ -251,7 +247,7 @@ void abst_digital_write(const struct abst_pin *pin_ptr, bool value)
  */
 void abst_group_digital_write(const struct abst_pin_group *pin_gr_ptr, uint16_t values)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
+    uint32_t opencm_port = _abst_opencm_port_conv(pin_gr_ptr->port);
     
     // Init values readed from GPIO_ODR register
     uint16_t out_values = GPIO_ODR(opencm_port);
@@ -276,7 +272,7 @@ void abst_group_digital_write(const struct abst_pin_group *pin_gr_ptr, uint16_t 
  */
 void abst_toggle(const struct abst_pin *pin_ptr)
 {
-    gpio_toggle(ab_opencm_port_conv(pin_ptr->port), 1 << pin_ptr->num);
+    gpio_toggle(_abst_opencm_port_conv(pin_ptr->port), 1 << pin_ptr->num);
 }
 
 /**
@@ -287,7 +283,7 @@ void abst_toggle(const struct abst_pin *pin_ptr)
  */
 bool abst_digital_read(const struct abst_pin *pin_ptr)
 {
-    return gpio_get(ab_opencm_port_conv(pin_ptr->port), 1 << pin_ptr->num) ^ pin_ptr->is_inverse;
+    return gpio_get(_abst_opencm_port_conv(pin_ptr->port), 1 << pin_ptr->num) ^ pin_ptr->is_inverse;
 }
 
 /**
@@ -298,7 +294,7 @@ bool abst_digital_read(const struct abst_pin *pin_ptr)
  */
 uint16_t abst_group_digital_read(const struct abst_pin_group *pin_gr_ptr)
 {
-    uint32_t opencm_port = ab_opencm_port_conv(pin_gr_ptr->port);
+    uint32_t opencm_port = _abst_opencm_port_conv(pin_gr_ptr->port);
     uint16_t values = gpio_port_read(opencm_port);
     uint16_t out = compose_bits(pin_gr_ptr->num, values);
     return out^pin_gr_ptr->is_inverse;

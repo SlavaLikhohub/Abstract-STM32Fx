@@ -22,13 +22,12 @@ import subprocess as sp
 curdir = pathlib.Path(__file__).resolve().parent
 # Project directory
 projdir = curdir.parent.parent
-
+print(str(projdir))
 # -- Project information -----------------------------------------------------
 
 project = 'AbstractSTM32Fx'
 copyright = '2020, Viacheslav Lykhohub'
 author = 'Viacheslav Lykhohub'
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -38,15 +37,20 @@ author = 'Viacheslav Lykhohub'
 extensions = [
     'hawkmoth'
 ]
+
+print(f"Extentions: {extensions}");
 # Default autodoc style
-cautodoc_compat = 'kernel-doc'
+cautodoc_compat = 'none'
 
 # Path to the root of the C source files
 cautodoc_root = str(projdir)
 
 # Overrite :clang: in c:autodoc
-cautodoc_clang = '-I/lib/clang/10.0.0/include,-DHAWKMOTH'
-cautodoc_clang += ',-I../inc,-std=gnu17'
+cautodoc_clang =  '-DHAWKMOTH'
+cautodoc_clang += ' ,-std=c99'
+cautodoc_clang += ' ,-I../include'
+#cautodoc_clang += ' ,-I../lib/libopencm3/include'
+cautodoc_clang += ' , -I/lib/clang/10.0.1/include'
 libs = []
 
 if (libs):
@@ -60,7 +64,7 @@ if (libs):
 print(f"CFLAGS: {cautodoc_clang}")
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+#templates_path = ['_templates']
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -78,5 +82,6 @@ html_theme = 'bizstyle'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
+language = None

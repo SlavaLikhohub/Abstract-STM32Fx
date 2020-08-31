@@ -5,7 +5,7 @@ In this part of documentation is described basic part of **AbstractSTM32Fx** lib
 
 See example of working with library here `Abstact-STM32Fx-Sample <https://github.com/SlavaLikhohub/Abstract-STM32Fx-Sample>`_.
 
-Elements description
+Elements description 
 --------------------
 
 .. c:autodoc:: include/abstractSTM32.h src/abstractSTM32.c

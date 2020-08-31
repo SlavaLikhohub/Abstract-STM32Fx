@@ -1,32 +1,42 @@
 #ifndef _ABSTRACT_STM32_H_
 #define _ABSTRACT_STM32_H_
+
 #include <stdint.h>
 #include <stdbool.h>
 
-/** Error codes */
+/** 
+ * Error codes
+ */
 enum abst_errors {
     /** Ok */
     ABST_OK = 0, 
+    
     /** Unknown error */
     ABST_UNKNOWN_ERROR = -1, 
+    
     /** Wrong parameters */
     ABST_WRONG_PARAMS = -2, 
+    
     /** Not implemented yet */
-    ABST_NOT_IMPLEMENTED = -3 
+    ABST_NOT_IMPLEMENTED = -3
 };
 
 /**
  * Struct for storing data about pin
  */
 struct abst_pin {  
-    /** GPIO Port ID. Can be GPIOA...GPIOK */
+    /** 
+     * GPIO Port identifier :c:type:`abst_pin_port`.
+     */
     uint8_t port : 4;
     
-    /** GPIO Pin number. Can be 0..15*/
+    /** 
+     * GPIO Pin number. Can be 0..15
+     */
     uint8_t num : 4;
     
     /** 
-     * GPIO Pin direction 
+     * GPIO Pin mode 
      * Can be GPIO_MODE_INPUT, GPIO_MODE_OUTPUT, GPIO_MODE_AF, GPIO_MODE_ANALOG
      */
     uint8_t mode : 2;
@@ -67,7 +77,7 @@ struct abst_pin {
  * Struct for storing data about a pin group
  */
 struct abst_pin_group {  
-    /** GPIO Port ID. Can be GPIOA...GPIOK */
+    /** GPIO Port ID. :c:type:`abst_pin_port`*/
     uint8_t port : 4;
     
     /** Pin identifiers. If multiple pins are to be set, use bitwise OR '|' to separate them. */
@@ -104,19 +114,32 @@ struct abst_pin_group {
      */
     uint16_t is_inverse : 16;
 };
-
+/**
+ * Port indentifier
+ */
 enum abst_pin_port {
-    AB_GPIOA = 0,
-    AB_GPIOB,
-    AB_GPIOC,
-    AB_GPIOD,
-    AB_GPIOE,
-    AB_GPIOF,
-    AB_GPIOG,
-    AB_GPIOH,
-    AB_GPIOI,
-    AB_GPIOJ,
-    AB_GPIOK
+    /** Port A */
+    ABST_GPIOA = 0,
+    /** Port B */
+    ABST_GPIOB,
+    /** Port C */
+    ABST_GPIOC,
+    /** Port D */
+    ABST_GPIOD,
+    /** Port E */
+    ABST_GPIOE,
+    /** Port F */
+    ABST_GPIOF,
+    /** Port G */
+    ABST_GPIOG,
+    /** Port H */
+    ABST_GPIOH,
+    /** Port I */
+    ABST_GPIOI,
+    /** Port J */
+    ABST_GPIOJ,
+    /** Port K */
+    ABST_GPIOK
 };
 
 void abst_init(uint32_t ahb);
