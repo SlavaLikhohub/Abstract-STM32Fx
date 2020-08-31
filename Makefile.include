@@ -41,4 +41,4 @@ $(BUILD_DIR)/liblist.a: $(LIST_DIR)/build/liblist.a $(BUILD_DIR)
 	cp $< $@
 
 $(LIST_DIR)/build/liblist.a:
-	cd $(LIST_DIR) && $(MAKE)
+	cd $(LIST_DIR) && $(MAKE) CFLAGS="$(CFLAGS)"

@@ -84,26 +84,24 @@ struct abst_pin_group {
     uint16_t num : 16;
     
     /** 
-     * GPIO Pins direction 
-     * Can be GPIO_MODE_INPUT, GPIO_MODE_OUTPUT, GPIO_MODE_AF, GPIO_MODE_ANALOG
+     * GPIO Pins direction :c:type:`abst_pin_mode`
      */
     uint8_t mode : 2;
 
     /**
-     * GPIO Output Pins Driver Type
-     * Can be GPIO_OTYPE_OD (open drain), GPIO_OTYPE_PP (push pull)
+     * GPIO Output Pins Driver Type :c:type:`abst_pin_otype`
      */
     uint8_t otype : 1;
 
     /**
      * GPIO Output Pins Speed
-     * Can be GPIO_OSPEED_2MHZ, GPIO_OSPEED_25MHZ, GPIO_OSPEED_50MHZ, GPIO_OSPEED_100MHZ
+     * Can be 
      */
     uint8_t speed : 2;
 
     /** 
      * GPIO Output Pins Pullup
-     * Can be GPIO_PUPD_NONE, GPIO_PUPD_PULLDOWN, GPIO_PUPD_PULLUP
+     * Can be 
      */
     uint8_t pull_up_down : 2;
 
@@ -140,6 +138,59 @@ enum abst_pin_port {
     ABST_GPIOJ,
     /** Port K */
     ABST_GPIOK
+};
+
+/** Modes of pins */
+enum abst_pin_mode
+{
+    /** Input */
+    ABST_MODE_INPUT = 0,
+    /** Output */
+    ABST_MODE_OUTPUT,
+    /** Alternative function*/
+    ABST_MODE_AF,
+    /** Analog*/
+    ABST_MODE_ANALOG
+};
+
+/** Pin's output driver type */
+enum abst_pin_otype
+{
+    /** Open drain */
+    ABST_OTYPE_OD = 0,
+    /** Push pull */
+    ABST_OTYPE_PP 
+};
+
+/** Pin pullup/pulldown configuration */
+enum abst_pull_up_down
+{
+    /** Float (no pull up or down) */
+    ABST_PUPD_NONE = 1,
+    /** Pull down */
+    ABST_PUPD_PULLDOWN,
+    /** Pull up */
+    ABST_PUPD_PULLUP
+};
+
+/** 
+ * Pin speed.
+ * If specified speed not avaliable for current platform will be chosen closest, 
+ * but not less than specified if this is possible. 
+ * If a specified speed greater than maximun avaliable, the maximum avaliable will be chosen.
+ */
+enum abst_pin_speed
+{
+    /** 2 MHz max. Avaliable STM32F1, STM32F4. */
+    ABST_OSPEED_2MHZ = 0,
+    /** 10 MHz max. Avaliable STM32F1. */
+    ABST_OSPEED_10MHZ,
+    /** 25 MHz max. Avaliable STM32F4.*/
+    ABST_OSPEED_25MHZ,
+    /** 50 MHz max. Avaliable STM32F1, STM32F4.*/
+    ABST_OSPEED_50MHZ,
+    /** 100 MHz max. Avaliable STM32F4. */
+    ABST_OSPEED_100MHZs
 };
 
 void abst_init(uint32_t ahb);

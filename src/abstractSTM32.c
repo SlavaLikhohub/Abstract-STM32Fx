@@ -1,7 +1,6 @@
 #include "abstractSTM32.h"
 #include "abst_libopencm3.h"
 #include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/f4/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
@@ -27,10 +26,6 @@ static uint8_t _pwm_cnt_;
 // Tick every 100 us
 static const uint32_t systick_fr = 1e4;
 
-inline static uint32_t ab_opencm_rcc_conv(const uint8_t port)
-{
-    return _REG_BIT(0x30, port);
-}
 /*
  * Control the soft PWM. 
  */
@@ -152,49 +147,78 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
 {
     uint32_t opencm_port = _abst_opencm_port_conv(pin_ptr->port);
 
-    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr->port));
+    rcc_periph_clock_enable(_abst_opencm_rcc_conv(pin_ptr->port));
+
+    uint8_t f4_mode = pin_ptr->mode; // The same order
+    uint8_t f4_pull_up_down = pin_ptr->pull_up_down; // The same order
+
+    uint8_t f4_otype = pin_ptr->otype; // The same order
+    
+    uint8_t f4_speed = 0;
+    switch (pin_ptr->speed) {
+        case ABST_OSPEED_2MHZ:
+            f4_speed = GPIO_OSPEED_2MHZ;
+            break;
+        case ABST_OSPEED_10MHZ:
+            /* Fall throught */
+        case ABST_OSPEED_25MHZ:
+            f4_speed = GPIO_OSPEED_25MHZ;
+            break;
+        case ABST_OSPEED_50MHZ:
+            f4_speed = GPIO_OSPEED_50MHZ;
+            break;
+        case ABST_OSPEED_100MHZ:
+            f4_speed = GPIO_OSPEED_100MHZ;
+            break;
+        default:
+            f4_speed = GPIO_OSPEED_100MHZ;
+    }
+
     gpio_mode_setup(opencm_port, 
-                    pin_ptr->mode, 
-                    pin_ptr->pull_up_down, 
+                    f4_mode, 
+                    f4_pull_up_down, 
                     1 << pin_ptr->num);
     
     gpio_set_output_options(opencm_port, 
-                            pin_ptr->otype, 
-                            pin_ptr->speed, 
+                            f4_otype, 
+                            f4_speed, 
                             1 << pin_ptr->num);
     abst_digital_write(pin_ptr, 0);
 }
 #endif
+
 #ifdef STM32F1
 void abst_gpio_init(const struct abst_pin *pin_ptr)
 {
     uint32_t opencm_port = _abst_opencm_port_conv(pin_ptr->port);
 
-    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_ptr->port));
+    rcc_periph_clock_enable(_abst_opencm_rcc_conv(pin_ptr->port));
 
     uint8_t f1_mode = GPIO_MODE_INPUT; // Default
     
-    if (pin_ptr->mode == GPIO_MODE_INPUT)
+    if (pin_ptr->mode == ABST_MODE_INPUT)
         f1_mode = GPIO_MODE_INPUT;
-    else if (pin_ptr->speed == GPIO_OSPEED_2MHZ)
+    else if (pin_ptr->speed == ABST_OSPEED_2MHZ)
         f1_mode = GPIO_MODE_OUTPUT_2_MHZ;
-    else if (pin_ptr->speed >= GPIO_OSPEED_25MHZ) // Impossible to set 25 MHz or greater than 50 MHz
+    else if (pin_ptr->speed >= ABST_OSPEED_10MHZ)
+        f1_mode = GPIO_MODE_OUTPUT_10_MHZ;
+    else 
         f1_mode = GPIO_MODE_OUTPUT_50_MHZ;
     
     uint8_t f1_cnf = GPIO_CNF_INPUT_FLOAT; // Default
-     if (pin_ptr->mode == GPIO_MODE_ANALOG || 
-            (pin_ptr->mode == GPIO_MODE_OUTPUT && pin_ptr->otype == GPIO_OTYPE_PP))
+     if (pin_ptr->mode == ABST_MODE_ANALOG || 
+            (pin_ptr->mode == ABST_MODE_OUTPUT && pin_ptr->otype == ABST_OTYPE_PP))
         f1_cnf = GPIO_CNF_INPUT_ANALOG; // = GPIO_CNF_OUTPUT_PUSHPULL
     
-    else if ((pin_ptr->mode == GPIO_MODE_INPUT || pin_ptr->mode == GPIO_MODE_OUTPUT) 
-            && pin_ptr->otype == GPIO_OTYPE_OD)
+    else if ((pin_ptr->mode == ABST_MODE_INPUT || pin_ptr->mode == ABST_MODE_OUTPUT) 
+            && pin_ptr->otype == ABST_OTYPE_OD)
         f1_cnf = GPIO_CNF_INPUT_FLOAT; // = GPIO_CNF_OUTPUT_OPENDRAIN
 
-    else if ((pin_ptr->mode == GPIO_MODE_INPUT || pin_ptr->mode == GPIO_MODE_AF)
-            && pin_ptr->otype == GPIO_OTYPE_PP)
+    else if ((pin_ptr->mode == ABST_MODE_INPUT || pin_ptr->mode == ABST_MODE_AF)
+            && pin_ptr->otype == ABST_OTYPE_PP)
         f1_cnf = GPIO_CNF_INPUT_PULL_UPDOWN; // = GPIO_CNF_OUTPUT_ALTFN_PUSHPULL
     
-    else if (pin_ptr->mode == GPIO_MODE_AF && pin_ptr->otype == GPIO_OTYPE_OD)
+    else if (pin_ptr->mode == ABST_MODE_AF && pin_ptr->otype == ABST_OTYPE_OD)
         f1_cnf = GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN;
 
     gpio_set_mode(opencm_port, f1_mode, f1_cnf, 1 << pin_ptr->num);
@@ -210,7 +234,7 @@ void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
 {
     uint32_t opencm_port = _abst_opencm_port_conv(pin_gr_ptr->port);
 
-    rcc_periph_clock_enable(ab_opencm_rcc_conv(pin_gr_ptr->port));
+    rcc_periph_clock_enable(_abst_opencm_rcc_conv(pin_gr_ptr->port));
 
     gpio_mode_setup(opencm_port, 
                     pin_gr_ptr->mode, 

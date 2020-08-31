@@ -43,15 +43,31 @@
 #include <libopencm3/stm32/f1/rcc.h>
 #endif
 
+#ifdef STM32F1
 inline uint32_t _abst_opencm_port_conv(const uint8_t port)
 {
-#ifdef STM32F1
     // Definition at line 76 of file stm32/f1/memorymap.h.
     return PERIPH_BASE_APB2 + 0x0400 * (port + 2); 
-#endif
-#ifdef STM32F4
-    return PERIPH_BASE_AHB1 + 0x0400 * port;
-#endif
 }
+
+
+inline uint32_t _abst_opencm_rcc_conv(const uint8_t port)
+{
+    // Definition at line 552 of file f1/rcc.h.
+    return _REG_BIT(0x18, port + 2);
+}
+
+#endif
+
+#ifdef STM32F4
+inline uint32_t _abst_opencm_port_conv(const uint8_t port)
+{
+    return PERIPH_BASE_AHB1 + 0x0400 * port;
+}
+inline uint32_t _abst_opencm_rcc_conv(const uint8_t port)
+{
+    return _REG_BIT(0x30, port);
+}
+#endif
 
 #endif //_ABST_LIBOPENCM3_H_

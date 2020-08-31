@@ -28,10 +28,10 @@ static struct abst_pin *conf_pin_out(uint8_t port, int32_t num)
     *result = (struct abst_pin){
         .port = port,
         .num = num,
-        .mode = GPIO_MODE_OUTPUT,
-        .otype = GPIO_OTYPE_PP,
-        .speed = GPIO_OSPEED_50MHZ,
-        .pull_up_down = GPIO_PUPD_PULLUP,
+        .mode = ABST_MODE_OUTPUT,
+        .otype = ABST_OTYPE_PP,
+        .speed = ABST_OSPEED_2MHZ,
+        .pull_up_down = ABST_PUPD_PULLUP,
         .is_inverse = false
     };
     abst_gpio_init(result);
@@ -51,10 +51,10 @@ static struct abst_pin_group *conf_pin_group_out(uint8_t port, uint16_t num)
     *result = (struct abst_pin_group){
         .port = port,
         .num = num,
-        .mode = GPIO_MODE_OUTPUT,
-        .otype = GPIO_OTYPE_PP,
-        .speed = GPIO_OSPEED_50MHZ,
-        .pull_up_down = GPIO_PUPD_NONE,
+        .mode = ABST_MODE_OUTPUT,
+        .otype = ABST_OTYPE_PP,
+        .speed = ABST_OSPEED_2MHZ,
+        .pull_up_down = ABST_PUPD_NONE,
         .is_inverse = false
     };
     abst_group_gpio_init(result);
