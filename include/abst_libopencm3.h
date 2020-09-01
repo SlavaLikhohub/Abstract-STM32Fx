@@ -39,9 +39,13 @@
 #include <libopencm3/stm32/gpio.h>
 
 #ifdef STM32F1
+
 #include <libopencm3/stm32/f1/memorymap.h>
 #include <libopencm3/stm32/f1/rcc.h>
-#endif
+
+#endif // STM32F1
+
+#define _REG_BIT(base, bit)		(((base) << 5) + (bit))
 
 #ifdef STM32F1
 inline uint32_t _abst_opencm_port_conv(const uint8_t port)
@@ -57,17 +61,20 @@ inline uint32_t _abst_opencm_rcc_conv(const uint8_t port)
     return _REG_BIT(0x18, port + 2);
 }
 
-#endif
+#endif // STM32F1
 
 #ifdef STM32F4
+
 inline uint32_t _abst_opencm_port_conv(const uint8_t port)
 {
     return PERIPH_BASE_AHB1 + 0x0400 * port;
 }
+
 inline uint32_t _abst_opencm_rcc_conv(const uint8_t port)
 {
     return _REG_BIT(0x30, port);
 }
-#endif
+
+#endif // STM32F4
 
 #endif //_ABST_LIBOPENCM3_H_

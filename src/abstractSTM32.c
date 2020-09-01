@@ -2,6 +2,7 @@
 #include "abst_libopencm3.h"
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/timer.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
 #include <stdint.h>
@@ -12,8 +13,6 @@
 #endif
 
 
-#define _REG_BIT(base, bit)		(((base) << 5) + (bit))
-
 #define CEILING_POS(X) ((X-(int)(X)) > 0 ? (int)(X+1) : (int)(X))
 
 static volatile uint32_t _time_ticks_;
@@ -23,6 +22,7 @@ static volatile bool _sleep_;
 // List of pins that are currently used for software PWM
 static list_t *soft_pwm_list;
 static uint8_t _pwm_cnt_;
+static uint32_t frequency;
 // Tick every 100 us
 static const uint32_t systick_fr = 1e4;
 
@@ -92,11 +92,14 @@ static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
  * Initialize the library. 1) Reset global variables 2) Start systick
  *
  * :param ahb: The current AHB frequency in Hz. 
- * If frequency changes reinit library with different value.
+ * :param hard_pwm_freq: Hard pulse wide modulation frequency (using TIM1). 
+ *      Set **NULL** to disable hard PWM or if the MCU has no Advanced Times (i.e. STM32F1)
+ * If frequency changes recall this function with different values.
  */
-void abst_init(uint32_t anb)
+void abst_init(uint32_t anb, uint32_t hard_pwm_freq)
 {
     static bool _inited_ = false;
+    frequency  = anb;
     if (!_inited_) {
         _time_ticks_ = 0;
         _pwm_cnt_ = 0;
@@ -116,6 +119,31 @@ void abst_init(uint32_t anb)
     nvic_enable_irq(NVIC_SYSTICK_IRQ);
     systick_interrupt_enable();
     systick_counter_enable();
+
+    // Timer TIM1 for hard PWM
+    if (hard_pwm_freq) {
+        rcc_periph_clock_enable(RCC_TIM1);
+
+        timer_set_mode(TIM1, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
+
+        timer_set_prescaler(TIM1, anb / hard_pwm_freq / 256);
+
+        timer_set_oc_mode(TIM1, TIM_OC1, TIM_OCM_PWM1);
+        timer_set_oc_mode(TIM1, TIM_OC2, TIM_OCM_PWM1);
+        timer_set_oc_mode(TIM1, TIM_OC3, TIM_OCM_PWM1);
+        timer_set_oc_mode(TIM1, TIM_OC4, TIM_OCM_PWM1);
+
+        timer_enable_oc_output(TIM1, TIM_OC1);
+        timer_enable_oc_output(TIM1, TIM_OC2);
+        timer_enable_oc_output(TIM1, TIM_OC3);
+        timer_enable_oc_output(TIM1, TIM_OC4);
+
+        timer_enable_break_main_output(TIM1);
+
+        timer_set_period(TIM1, 254);
+        
+        timer_enable_counter(TIM1);
+    }
 }
 
 
@@ -179,10 +207,14 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
                     f4_pull_up_down, 
                     1 << pin_ptr->num);
     
+    if (pin_ptr->mode == ABST_MODE_AF)
+        gpio_set_af(opencm_port, pin_ptr->af, 1 << pin_ptr->num);
+    
     gpio_set_output_options(opencm_port, 
                             f4_otype, 
                             f4_speed, 
                             1 << pin_ptr->num);
+
     abst_digital_write(pin_ptr, 0);
 }
 #endif
@@ -325,7 +357,7 @@ uint16_t abst_group_digital_read(const struct abst_pin_group *pin_gr_ptr)
 }
 
 /**
- * Set Pulse Wide Modulation (PWM) at the pin. When PWM should be stopped call :c:func:`abst_stop_pwm_soft`
+ * Set Pulse Wide Modulation (PWM) at the pin using systick. When PWM should be stopped call :c:func:`abst_stop_pwm_soft`
  *
  * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  * :param value: the duty cycle: between 0 (always off) and 255 (always on).
@@ -336,6 +368,7 @@ void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value)
     if (!list_find(soft_pwm_list, pin_ptr))
         list_lpush(soft_pwm_list, list_node_new(pin_ptr));
 }
+
 /**
  * Stop PWM on the pin.
  *
@@ -353,10 +386,88 @@ bool abst_stop_pwm_soft(struct abst_pin *pin_ptr)
     return true;
 }
 
-// TODO
+/**
+ * Set Pulse Wide Modulation (PWM) at the pin using Advanced Timer TIM1.
+ * 
+ * Freequency of PWM specifying by calling :c:func:`abst_init`
+ *
+ * If Advanced Timer is not presented at the platform this function calls :c:func:`abst_pwm_soft`
+ * 
+ * Hard PWM has only 4 channels:
+ * 
+ * * STM32F4
+ *      * CH1 : PA8     PE9
+ *      * CH2 : PA9     PE11
+ *      * CH3 : PA10    PE13
+ *      * CH4 : PA11    PE14
+ *
+ * Calling this function for other pins will have no effect 
+ *
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
+ * :param value: the duty cycle: between 0 (always off) and 255 (always on).
+ *      If pin->is_inverse == true, 0 - always on and 255 - always off.
+ */
 void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value)
 {
+#ifdef STM32F1 // Call soft PWM
+    abst_pwm_soft(pin_ptr, value);
     return;
+#endif // STM32F1
+
+#ifdef STM32F4
+    uint8_t channel = 0;
+    if (pin_ptr->port == ABST_GPIOA) {
+        switch (pin_ptr->num) {
+        case 8:
+            channel = TIM_OC1;
+            break;
+        case 9:
+            channel = TIM_OC2;
+            break;
+        case 10:
+            channel = TIM_OC3;
+            break;
+        case 11:
+            channel = TIM_OC4;
+            break;
+        default:
+            return; // Invalid pin
+        }
+    }
+    else if (pin_ptr->port == ABST_GPIOE) {
+    switch (pin_ptr->num) {
+        case 9:
+            channel = TIM_OC1;
+            break;
+        case 11:
+            channel = TIM_OC2;
+            break;
+        case 13:
+            channel = TIM_OC3;
+            break;
+        case 14:
+            channel = TIM_OC4;
+            break;
+        default:
+            return; // Invalid pin
+        }
+    }
+    else {
+        return; // Invalid port
+    }
+    if (pin_ptr->is_inverse)
+        value = 255 - value;
+    
+    timer_set_oc_value(TIM1, channel, value);
+
+    if (pin_ptr->mode != ABST_MODE_AF || pin_ptr->af != 1) {
+        pin_ptr->mode = ABST_MODE_AF;
+        pin_ptr->af = 1; // TIM1/TIM2
+        
+        abst_gpio_init(pin_ptr);
+    }
+    return;
+#endif
 }
 
 /**
@@ -367,7 +478,7 @@ void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value)
  */
 uint16_t abst_adc_read(struct abst_pin *pin_ptr)
 {
-    return ABST_NOT_IMPLEMENTED;
+    return 0;
 }
 
 /**
@@ -409,6 +520,7 @@ void abst_stop_sleep(void)
 {
     _sleep_ = false;
 }
+
 /**
  * Get time from Initialization in miliseconds. Timer overflows in 4 days 23 hours 18 minutes 
  *

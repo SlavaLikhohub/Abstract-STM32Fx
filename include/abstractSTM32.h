@@ -1,3 +1,8 @@
+/**
+ * Example of usage hard PWM
+ * To build and flash call
+ * make TARGET=hard_pwm_f4 PROFILE=release V=1 DEVICE=stm32f407vgt6 tidy all
+ */ 
 #ifndef _ABSTRACT_STM32_H_
 #define _ABSTRACT_STM32_H_
 
@@ -42,6 +47,11 @@ struct abst_pin {
     uint8_t mode : 2;
 
     /**
+     * GPIO Alternate function (0-15).
+     */
+    uint8_t af : 4;
+
+    /**
      * GPIO Output Pin Driver Type
      * Can be GPIO_OTYPE_OD (open drain), GPIO_OTYPE_PP (push pull)
      */
@@ -51,7 +61,7 @@ struct abst_pin {
      * GPIO Output Pin Speed
      * Can be GPIO_OSPEED_2MHZ, GPIO_OSPEED_25MHZ, GPIO_OSPEED_50MHZ, GPIO_OSPEED_100MHZ
      */
-    uint8_t speed : 2;
+    uint8_t speed : 4;
 
     /** 
      * GPIO Output Pin Pullup
@@ -157,16 +167,16 @@ enum abst_pin_mode
 enum abst_pin_otype
 {
     /** Open drain */
-    ABST_OTYPE_OD = 0,
+    ABST_OTYPE_PP  = 0,
     /** Push pull */
-    ABST_OTYPE_PP 
+    ABST_OTYPE_OD 
 };
 
 /** Pin pullup/pulldown configuration */
 enum abst_pull_up_down
 {
     /** Float (no pull up or down) */
-    ABST_PUPD_NONE = 1,
+    ABST_PUPD_NONE = 0,
     /** Pull down */
     ABST_PUPD_PULLDOWN,
     /** Pull up */
@@ -190,10 +200,10 @@ enum abst_pin_speed
     /** 50 MHz max. Avaliable STM32F1, STM32F4.*/
     ABST_OSPEED_50MHZ,
     /** 100 MHz max. Avaliable STM32F4. */
-    ABST_OSPEED_100MHZs
+    ABST_OSPEED_100MHZ
 };
 
-void abst_init(uint32_t ahb);
+void abst_init(uint32_t anb, uint32_t hard_pwm_freq);
 
 void abst_gpio_init(const struct abst_pin *pin_ptr);
 
