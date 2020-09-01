@@ -1,8 +1,3 @@
-/**
- * Example of usage hard PWM
- * To build and flash call
- * make TARGET=hard_pwm_f4 PROFILE=release V=1 DEVICE=stm32f407vgt6 tidy all
- */ 
 #ifndef _ABSTRACT_STM32_H_
 #define _ABSTRACT_STM32_H_
 
@@ -41,8 +36,7 @@ struct abst_pin {
     uint8_t num : 4;
     
     /** 
-     * GPIO Pin mode 
-     * Can be GPIO_MODE_INPUT, GPIO_MODE_OUTPUT, GPIO_MODE_AF, GPIO_MODE_ANALOG
+     * GPIO Pin mode :c:type:`abst_pin_mode`
      */
     uint8_t mode : 2;
 
@@ -52,27 +46,24 @@ struct abst_pin {
     uint8_t af : 4;
 
     /**
-     * GPIO Output Pin Driver Type
-     * Can be GPIO_OTYPE_OD (open drain), GPIO_OTYPE_PP (push pull)
+     * GPIO Output Pins Driver Type :c:type:`abst_pin_otype`
      */
     uint8_t otype : 1;
 
     /**
-     * GPIO Output Pin Speed
-     * Can be GPIO_OSPEED_2MHZ, GPIO_OSPEED_25MHZ, GPIO_OSPEED_50MHZ, GPIO_OSPEED_100MHZ
+     * GPIO Output Pin Speed :c:type:`abst_pin_speed`
      */
     uint8_t speed : 4;
 
     /** 
-     * GPIO Output Pin Pullup
-     * Can be GPIO_PUPD_NONE, GPIO_PUPD_PULLDOWN, GPIO_PUPD_PULLUP
+     * GPIO Output Pin Pullup :c:type:`abst_pull_up_down`
      */
     uint8_t pull_up_down : 2;
 
 
     /** 
      * Flag that specify if the pin is inversed. 
-     * If true, abst_digital_write and abst_digital_read functions inverse the value at the pin.
+     * If true, output and input are inversed.
      */
     uint8_t is_inverse : 1;
 
@@ -104,17 +95,14 @@ struct abst_pin_group {
     uint8_t otype : 1;
 
     /**
-     * GPIO Output Pins Speed
-     * Can be 
+     * GPIO Output Pins Speed :c:type:`abst_pin_speed`
      */
     uint8_t speed : 2;
 
     /** 
-     * GPIO Output Pins Pullup
-     * Can be 
+     * GPIO Output Pins Pullup :c:type:`abst_pull_up_down`
      */
     uint8_t pull_up_down : 2;
-
 
     /** 
      * Flags that specify if the pins are inversed. 
@@ -191,15 +179,15 @@ enum abst_pull_up_down
  */
 enum abst_pin_speed
 {
-    /** 2 MHz max. Avaliable STM32F1, STM32F4. */
+    /** 2 MHz max. Avaliable in STM32F1, STM32F4. */
     ABST_OSPEED_2MHZ = 0,
-    /** 10 MHz max. Avaliable STM32F1. */
+    /** 10 MHz max. Avaliable in STM32F1. */
     ABST_OSPEED_10MHZ,
-    /** 25 MHz max. Avaliable STM32F4.*/
+    /** 25 MHz max. Avaliable in STM32F4.*/
     ABST_OSPEED_25MHZ,
-    /** 50 MHz max. Avaliable STM32F1, STM32F4.*/
+    /** 50 MHz max. Avaliable in STM32F1, STM32F4.*/
     ABST_OSPEED_50MHZ,
-    /** 100 MHz max. Avaliable STM32F4. */
+    /** 100 MHz max. Avaliable in STM32F4. */
     ABST_OSPEED_100MHZ
 };
 
@@ -225,13 +213,13 @@ void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value);
 
 bool abst_stop_pwm_soft(struct abst_pin *pin_ptr);
 
-void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value); // TODO
+void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value);
 
 uint16_t abst_adc_read(struct abst_pin *pin_ptr);
 
-void abst_delay_ms(uint64_t miliseconds);
+void abst_delay_ms(uint32_t miliseconds);
 
-void abst_delay_us(uint64_t microseconds);
+void abst_delay_us(uint32_t microseconds);
 
 void abst_sleep_wfi(void);
 

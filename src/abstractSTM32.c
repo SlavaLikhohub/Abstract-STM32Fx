@@ -156,7 +156,8 @@ void abst_sys_tick_handler(void)
 }
 
 /**
- * SysTick interruption handler.
+ * SysTick interruption handler. (Weak definition)
+ *
  * In case of redefining of this function make sure
  * to call :c:func:`abst_sys_tick_handler` to keep soft PWM and delay alive
  */
@@ -170,9 +171,9 @@ void __attribute__ ((weak)) sys_tick_handler(void)
  * 
  * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  */
-#ifdef STM32F4
 void abst_gpio_init(const struct abst_pin *pin_ptr)
 {
+#ifdef STM32F4
     uint32_t opencm_port = _abst_opencm_port_conv(pin_ptr->port);
 
     rcc_periph_clock_enable(_abst_opencm_rcc_conv(pin_ptr->port));
@@ -216,12 +217,8 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
                             1 << pin_ptr->num);
 
     abst_digital_write(pin_ptr, 0);
-}
 #endif
-
 #ifdef STM32F1
-void abst_gpio_init(const struct abst_pin *pin_ptr)
-{
     uint32_t opencm_port = _abst_opencm_port_conv(pin_ptr->port);
 
     rcc_periph_clock_enable(_abst_opencm_rcc_conv(pin_ptr->port));
@@ -254,8 +251,8 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
         f1_cnf = GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN;
 
     gpio_set_mode(opencm_port, f1_mode, f1_cnf, 1 << pin_ptr->num);
-}
 #endif
+}
 
 /**
  * Initialize the pin group with the setting that specified in struct pin.
@@ -486,7 +483,7 @@ uint16_t abst_adc_read(struct abst_pin *pin_ptr)
  *
  * :param miliseconds: Time to wait.
  */
-void abst_delay_ms(uint64_t miliseconds)
+void abst_delay_ms(uint32_t miliseconds)
 {
     volatile uint32_t stp_time = abst_time_ms() + miliseconds;
     while (abst_time_ms() < stp_time)
@@ -498,7 +495,7 @@ void abst_delay_ms(uint64_t miliseconds)
  *
  * :param microseconds: Time to wait.
  */
-void abst_delay_us(uint64_t microseconds)
+void abst_delay_us(uint32_t microseconds)
 {
     abst_delay_ms((microseconds % 1000) ? (1 + microseconds / 1000) : (microseconds / 1000));
 }
