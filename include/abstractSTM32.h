@@ -60,7 +60,6 @@ struct abst_pin {
      */
     uint8_t pull_up_down : 2;
 
-
     /** 
      * Flag that specify if the pin is inversed. 
      * If true, output and input are inversed.
@@ -82,12 +81,17 @@ struct abst_pin_group {
     uint8_t port : 4;
     
     /** Pin identifiers. If multiple pins are to be set, use bitwise OR '|' to separate them. */
-    uint16_t num : 16;
+    uint16_t num;
     
     /** 
      * GPIO Pins direction :c:type:`abst_pin_mode`
      */
     uint8_t mode : 2;
+
+    /**
+     * GPIO Alternate function (0-15).
+     */
+    uint8_t af : 4;
 
     /**
      * GPIO Output Pins Driver Type :c:type:`abst_pin_otype`
@@ -108,7 +112,7 @@ struct abst_pin_group {
      * Flags that specify if the pins are inversed. 
      * If true, abst_digital_write and abst_digital_read functions inverse the value at the pin.
      */
-    uint16_t is_inverse : 16;
+    uint16_t is_inverse;
 };
 /**
  * Port indentifier
