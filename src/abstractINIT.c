@@ -33,7 +33,7 @@ void _abst_init_systick(uint32_t systick_fr, uint32_t anb)
  *
  * :param anb: The current AHB frequency in Hz.
  * :param hard_pwm_freq: Hard pulse wide modulation desired frequency (using TIM1). 
- *      Set **NULL** to disable hard PWM or if the MCU has no Advanced Times (i.e. STM32F1)
+ *      Set **NULL** to disable hard PWM
  */
 void _abst_init_hard_pwm_tim1(uint32_t anb, uint32_t hard_pwm_freq)
 {
@@ -206,8 +206,8 @@ void _abst_init_pins(   uint8_t port,
 
     rcc_periph_clock_enable(_abst_opencm_rcc_conv(port));
     
-    f1_mode = _abst_conv_mode(mode, speed);
-    f1_cnf = _abst_conv_cnf(mode, otype);
+    uint8_t f1_mode = _abst_conv_mode(mode, speed);
+    uint8_t f1_cnf = _abst_conv_cnf(mode, otype);
 
     gpio_set_mode(opencm_port, f1_mode, f1_cnf, num);
 #endif

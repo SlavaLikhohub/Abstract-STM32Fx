@@ -91,7 +91,7 @@ static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
  *
  * :param ahb: The current AHB frequency in Hz. 
  * :param hard_pwm_freq: Hard pulse wide modulation desired frequency (using TIM1). 
- *      Set **NULL** to disable hard PWM or if the MCU has no Advanced Times (i.e. STM32F1)
+ *      Set **NULL** to disable hard PWM
  * If frequency changes recall this function with different values.
  */
 void abst_init(uint32_t anb, uint32_t hard_pwm_freq)
@@ -278,11 +278,9 @@ bool abst_stop_pwm_soft(struct abst_pin *pin_ptr)
  * 
  * Freequency of PWM specifying by calling :c:func:`abst_init`
  *
- * If Advanced Timer is not presented at the platform this function calls :c:func:`abst_pwm_soft`
- * 
  * Hard PWM has only 4 channels:
  * 
- * * STM32F4
+ * * STM32F1, STM32F4
  *      * CH1 : PA8     PE9
  *      * CH2 : PA9     PE11
  *      * CH3 : PA10    PE13
@@ -296,12 +294,6 @@ bool abst_stop_pwm_soft(struct abst_pin *pin_ptr)
  */
 void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value)
 {
-#ifdef STM32F1 // Call soft PWM
-    abst_pwm_soft(pin_ptr, value);
-    return;
-#endif // STM32F1
-
-#ifdef STM32F4
     uint8_t channel = 0;
     if (pin_ptr->port == ABST_GPIOA) {
         switch (pin_ptr->num) {
@@ -349,12 +341,11 @@ void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value)
 
     if (pin_ptr->mode != ABST_MODE_AF || pin_ptr->af != 1) {
         pin_ptr->mode = ABST_MODE_AF;
-        pin_ptr->af = 1; // TIM1/TIM2
-        
+        pin_ptr->af = 1; // TIM1/TIM2 in STM32F4. No effect in STM32F1
+
         abst_gpio_init(pin_ptr);
     }
     return;
-#endif
 }
 
 /**

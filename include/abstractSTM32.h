@@ -42,6 +42,7 @@ struct abst_pin {
 
     /**
      * GPIO Alternate function (0-15).
+     * Has no effect with STM32F1.
      */
     uint8_t af : 4;
 
