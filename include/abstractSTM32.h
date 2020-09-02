@@ -67,6 +67,27 @@ struct abst_pin {
      */
     uint8_t is_inverse : 1;
 
+    /**
+     * ADC number (1-3). See documentation of the MCU for avaliable options.
+     */
+    uint8_t adc_num : 2;
+
+    /**
+     * Channel of ADC. See documentation of the MCU for avaliable options.
+     */
+    uint8_t adc_channel : 4;
+
+    /**
+     * Resolution of ADC :c:type:`abst_adc_resolution`
+     */
+    uint8_t adc_resolution : 2;
+
+    /**
+     * Sample time for an ADC. Set **NULL** if an ADC is not used.
+     * :c:type:`abst_adc_sample_time`
+     */
+    uint8_t adc_sample_time;
+
     /*
      * Service variable: Must not be changed by user.
      * Used to save PWM value on the pin and used by :c:func:`abst_pwm_soft`
@@ -202,11 +223,41 @@ enum abst_pin_speed
     ABST_OSPEED_100MHZ
 };
 
+/** Sample time of ADC */
+enum abst_adc_sample_time
+{
+    /** 3 cycle */
+    ABST_ADC_SMPR_SMP_3CYC = 0,
+    /** 15 cycle */
+    ABST_ADC_SMPR_SMP_15CYC,
+    /** 28 cycle */
+    ABST_ADC_SMPR_SMP_28CYC,
+    /** 56 cycle */
+    ABST_ADC_SMPR_SMP_56CYC,
+    /** 84 cycle */
+    ABST_ADC_SMPR_SMP_84CYC,
+    /** 112 cycle */
+    ABST_ADC_SMPR_SMP_112CYC,
+    /** 144 cycle */
+    ABST_ADC_SMPR_SMP_144CYC,
+    /** 480 cycle */
+    ABST_ADC_SMPR_SMP_480CYC,
+};
+
+/** Resolution of ADC */
+enum abst_adc_resolution 
+{
+    ABST_ADC_RES_12BIT = 0,
+    ABST_ADC_RES_10BIT,
+    ABST_ADC_RES_8BIT, 
+    ABST_ADC_RES_6BIT 
+};
+
 void abst_init(uint32_t anb, uint32_t hard_pwm_freq);
 
-void abst_gpio_init(const struct abst_pin *pin_ptr);
+enum abst_errors abst_gpio_init(const struct abst_pin *pin_ptr);
 
-void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr);
+enum abst_errors abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr);
 
 void abst_sys_tick_handler(void);
 

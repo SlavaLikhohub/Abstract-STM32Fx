@@ -22,7 +22,7 @@ static uint32_t frequency;
 static const uint32_t systick_fr = 1e4;
 
 /*
- * Control the soft PWM. 
+ * Helper function for controling the soft PWM. 
  */
 static void abst_soft_pwm_hander(void)
 {
@@ -112,6 +112,9 @@ void abst_init(uint32_t anb, uint32_t hard_pwm_freq)
 
     // Timer TIM1 for hard PWM
     _abst_init_hard_pwm_tim1(anb, hard_pwm_freq);
+
+    // ADC
+    _abst_adc_init_single_conv(1, 2);
 }
 
 
@@ -138,8 +141,9 @@ void __attribute__ ((weak)) sys_tick_handler(void)
  * Initialize the pin with the setting that specified in struct pin.
  * 
  * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
+ * :return: Error code :c:type:`abst_errors`.
  */
-void abst_gpio_init(const struct abst_pin *pin_ptr)
+enum abst_errors abst_gpio_init(const struct abst_pin *pin_ptr)
 {
     _abst_init_pins(pin_ptr->port, 
                     pin_ptr->mode,
@@ -148,14 +152,24 @@ void abst_gpio_init(const struct abst_pin *pin_ptr)
                     pin_ptr->pull_up_down,
                     pin_ptr->af,
                     1 << pin_ptr->num);
+
+    // Setup channel of ADC
+    if (pin_ptr->mode == ABST_MODE_ANALOG && pin_ptr->adc_sample_time != NULL) {
+        enum abst_errors res = _abst_init_adc_channel(pin_ptr);
+        if (res != 0)
+            return res; // Initialization failed
+    }
+
+    return ABST_OK;
 }
 
 /**
  * Initialize the pin group with the setting that specified in struct pin.
  * 
  * :param pin_gr_ptr: Pointer to :c:type:`abst_pin_group` with filled parameters.
+ * :return: Error code :c:type:`abst_errors`.
  */
-void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
+enum abst_errors abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
 {
     _abst_init_pins(pin_gr_ptr->port, 
                     pin_gr_ptr->mode,
@@ -164,6 +178,8 @@ void abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
                     pin_gr_ptr->pull_up_down,
                     pin_gr_ptr->af,
                     pin_gr_ptr->num);
+
+    return ABST_OK;
 }
 
 /**
@@ -349,14 +365,29 @@ void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value)
 }
 
 /**
- * Read analog value from the pin via the Analog to Digital Converter (!) TODO 
+ * Read analog value from the pin via the Analog to Digital Converter
  *
  * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
  * :return: Read value (12 bit)
  */
 uint16_t abst_adc_read(struct abst_pin *pin_ptr)
 {
-    return 0;
+    if (pin_ptr == NULL)
+        return 0;
+    
+    uint32_t openocd_adc = _abst_opencm_adc_conv(pin_ptr->adc_num);
+
+    adc_set_resolution(openocd_adc, _abst_conv_adc_resolution(pin_ptr->adc_resolution));
+
+    uint8_t channels[] = {pin_ptr->adc_channel};
+
+    adc_set_regular_sequence(openocd_adc, 1, channels);
+
+    adc_start_conversion_regular(openocd_adc);
+
+    while (!adc_eoc(openocd_adc));
+
+    return adc_read_regular(openocd_adc);
 }
 
 /**

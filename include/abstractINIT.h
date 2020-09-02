@@ -17,6 +17,10 @@ uint8_t _abst_conv_cnf(uint8_t mode, uint8_t otype);
 
 uint8_t _abst_conv_speed(uint8_t speed);
 
+enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale);
+
+enum abst_errors _abst_init_adc_channel(const struct abst_pin *pin_ptr);
+
 void _abst_init_pins(   uint8_t port, 
                         uint8_t mode, 
                         uint8_t speed, 

@@ -13,6 +13,7 @@ INC_DIRS := ./include
 SOURCES := abstractSTM32.c
 SOURCES += abstractLCD.c
 SOURCES += abstractINIT.c
+SOURCES += abst_libopencm3.c
 
 CC		= $(PREFIX)gcc
 AR		= $(PREFIX)ar

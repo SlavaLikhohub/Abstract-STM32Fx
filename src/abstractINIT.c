@@ -6,6 +6,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
+#include <libopencm3/stm32/adc.h>
 
 /**
  * Helper function for initializing SysTick.
@@ -155,7 +156,7 @@ uint8_t _abst_conv_speed(uint8_t speed)
     return f4_speed;
 #endif // STM32F4
 
-    return 0; // In not STM32F4
+    return 0; // If not STM32F4
 }
 
 /**
@@ -181,7 +182,7 @@ void _abst_init_pins(   uint8_t port,
 #ifdef STM32F4
     uint32_t opencm_port = _abst_opencm_port_conv(port);
 
-    rcc_periph_clock_enable(_abst_opencm_rcc_conv(port));
+    rcc_periph_clock_enable(_abst_opencm_rcc_gpio_conv(port));
 
     uint8_t f4_mode = mode; // Order is the same
     uint8_t f4_pull_up_down = pull_up_down; // Order is the same
@@ -204,11 +205,78 @@ void _abst_init_pins(   uint8_t port,
 #ifdef STM32F1
     uint32_t opencm_port = _abst_opencm_port_conv(port);
 
-    rcc_periph_clock_enable(_abst_opencm_rcc_conv(port));
+    rcc_periph_clock_enable(_abst_opencm_rcc_gpio_conv(port));
     
     uint8_t f1_mode = _abst_conv_mode(mode, speed);
     uint8_t f1_cnf = _abst_conv_cnf(mode, otype);
 
     gpio_set_mode(opencm_port, f1_mode, f1_cnf, num);
+#endif
+}
+
+/**
+ * Helper function for initializing an ADC in single convesation mode with scan mode disabled
+ * After initializing an ADC is turned off.
+ * Called from :c:func:`abst_init`
+ *
+ * :param adc_n: Number of ADC (1-3). If specified another the function will return :c:member:`abst_errors.ABST_WRONG_PARAMS`
+ * :param prescale: Prescale: 2, 4, 6, 8. If specified another the function will return :c:member:`abst_errors.ABST_WRONG_PARAMS`
+ * :return: Error code according to :c:type:`abst_errors`.
+ */
+enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale)
+{
+    if (adc_n < 1 || adc_n > 3)
+        return ABST_WRONG_PARAMS;
+
+    uint8_t openocd_presc = 0;
+    switch (prescale) {
+        case 2:
+            openocd_presc = ADC_CCR_ADCPRE_BY2;
+            break;
+        case 4:
+            openocd_presc = ADC_CCR_ADCPRE_BY2;
+            break;
+        case 6:
+            openocd_presc = ADC_CCR_ADCPRE_BY2;
+            break;
+        case 8:
+            openocd_presc = ADC_CCR_ADCPRE_BY2;
+            break;
+        default:
+            return ABST_WRONG_PARAMS;
+    }
+
+    uint32_t opencm_adc = _abst_opencm_adc_conv(adc_n);
+    uint32_t opencm_rcc_adc = _abst_opencm_rcc_adc_conv(adc_n);
+
+    rcc_periph_clock_enable(opencm_rcc_adc);
+
+    adc_power_off(opencm_adc);
+
+    adc_set_clk_prescale(openocd_presc);
+
+    adc_disable_scan_mode(opencm_adc);
+
+    adc_set_single_conversion_mode(opencm_adc);
+
+    adc_set_multi_mode(ADC_CCR_MULTI_INDEPENDENT);
+}
+
+/**
+ * Helper function for initializing ADC channel based on information from :c:type:`abst_pin`.
+ *
+ * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
+ */
+enum abst_errors _abst_init_adc_channel(const struct abst_pin *pin_ptr)
+{
+#ifdef STM32F4
+    uint32_t openocd_adc = _abst_opencm_adc_conv(pin_ptr->adc_num);
+
+    adc_set_sample_time(openocd_adc, pin_ptr->adc_channel, pin_ptr->adc_sample_time);
+    
+    adc_set_multi_mode(ADC_CCR_MULTI_INDEPENDENT);
+
+    adc_power_on(openocd_adc);
+
 #endif
 }
