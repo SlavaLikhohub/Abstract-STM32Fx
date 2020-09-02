@@ -8,11 +8,6 @@
 #include <stdint.h>
 #include <list.h>
 
-#ifdef STM32F1
-
-#endif
-
-
 #define CEILING_POS(X) ((X-(int)(X)) > 0 ? (int)(X+1) : (int)(X))
 
 static volatile uint32_t _time_ticks_;
@@ -37,16 +32,19 @@ static void abst_soft_pwm_hander(void)
     // Reset all in first tick
     if (_pwm_cnt_ == 0) {
         while ((node = list_iterator_next(it))) {
-            const struct abst_pin * pin_ptr = node->val;
+            struct abst_pin *pin_ptr = node->val;
+            pin_ptr->__pwm_value_set = 0;
             // If __pwm_value == 0 don't turn on the pin
             abst_digital_write(pin_ptr, pin_ptr->__pwm_value);
         }
     }
     else {
         while ((node = list_iterator_next(it))) {
-            const struct abst_pin * pin_ptr = node->val;
-            if (pin_ptr->__pwm_value == _pwm_cnt_)
+            struct abst_pin *pin_ptr = node->val;
+            if (pin_ptr->__pwm_value <= _pwm_cnt_ && !pin_ptr->__pwm_value_set) {
                 abst_digital_write(pin_ptr, 0);
+                pin_ptr->__pwm_value_set = 1;
+            }
         }
     }
     free(it);

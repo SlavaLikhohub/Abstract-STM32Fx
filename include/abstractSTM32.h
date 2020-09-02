@@ -71,6 +71,12 @@ struct abst_pin {
      * Used to save PWM value on the pin and used by :c:func:`abst_pwm_soft`
      */
     uint8_t __pwm_value;
+
+    /*
+     * Service variable: Must not be changed by user.
+     * Used to indicate if PWM value already has been used.
+     */
+    uint8_t __pwm_value_set : 1;
 };
 
 /**
