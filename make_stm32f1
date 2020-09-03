@@ -9,11 +9,11 @@ FP_FLAGS	?= -mfloat-abi=soft
 TGT_CFLAGS = 
 
 ifeq ($(PROFILE),release)
-TGT_CFLAGS += -Os
+TGT_CFLAGS += $(STANDARD_FLAGS)
 endif
 
 ifeq ($(PROFILE),debug)
-TGT_CFLAGS += -O0
+TGT_CFLAGS += $(DEBUG_FLAGS)
 endif
 
 TGT_CFLAGS	+= -Wall -Wextra -Wimplicit-function-declaration \
@@ -23,6 +23,6 @@ TGT_CFLAGS	+= -Wall -Wextra -Wimplicit-function-declaration \
 		  -mcpu=cortex-m3 -mthumb $(FP_FLAGS) \
 		  -Wstrict-prototypes \
 		  -ffunction-sections -fdata-sections -MD
-TGT_CFLAGS  += $(DEBUG_FLAGS)
-TGT_CFLAGS	+= $(STANDARD_FLAGS)
+# TGT_CFLAGS  += $(DEBUG_FLAGS)
+TGT_CFLAGS	+= 
 ARFLAGS		= rcs

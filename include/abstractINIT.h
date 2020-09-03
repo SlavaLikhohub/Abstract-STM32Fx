@@ -11,12 +11,6 @@ void _abst_init_systick(uint32_t systick_fr, uint32_t anb);
 
 void _abst_init_hard_pwm_tim1(uint32_t anb, uint32_t hard_pwm_freq);
 
-uint8_t _abst_conv_mode(uint8_t mode, uint8_t speed);
-
-uint8_t _abst_conv_cnf(uint8_t mode, uint8_t otype);
-
-uint8_t _abst_conv_speed(uint8_t speed);
-
 enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale);
 
 enum abst_errors _abst_init_adc_channel(const struct abst_pin *pin_ptr);

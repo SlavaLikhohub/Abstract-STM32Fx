@@ -374,10 +374,13 @@ uint16_t abst_adc_read(struct abst_pin *pin_ptr)
 {
     if (pin_ptr == NULL)
         return 0;
-    
+
     uint32_t openocd_adc = _abst_opencm_adc_conv(pin_ptr->adc_num);
 
+
+#ifdef STM32F4 // Apparat resolution
     adc_set_resolution(openocd_adc, _abst_conv_adc_resolution(pin_ptr->adc_resolution));
+#endif // STM32F4
 
     uint8_t channels[] = {pin_ptr->adc_channel};
 
@@ -387,7 +390,30 @@ uint16_t abst_adc_read(struct abst_pin *pin_ptr)
 
     while (!adc_eoc(openocd_adc));
 
-    return adc_read_regular(openocd_adc);
+    uint16_t result = adc_read_regular(openocd_adc);
+#ifdef STM32F4
+    return result;
+#endif // STM32F4
+
+
+#ifdef STM32F1 // Software resolution
+    switch (pin_ptr->adc_resolution) {
+        case ABST_ADC_RES_12BIT:
+            return result >> 0;
+            break;
+        case ABST_ADC_RES_10BIT:
+            return result >> 2;
+            break;
+        case ABST_ADC_RES_8BIT:
+            return result >> 4;
+            break;
+        case ABST_ADC_RES_6BIT:
+            return result >> 6;
+            break;
+        default:
+            return result;
+    }
+#endif // STM32F1
 }
 
 /**

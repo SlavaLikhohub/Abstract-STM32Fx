@@ -45,9 +45,13 @@
 
 #endif // STM32F1
 
+// COMMON DEFINITIONS
 #define _REG_BIT(base, bit)		(((base) << 5) + (bit))
 
-#ifdef STM32F1
+uint32_t _abst_conv_adc_resolution(uint8_t resolution);
+
+
+#ifdef STM32F1 // =======================================
 inline uint32_t _abst_opencm_port_conv(const uint8_t port)
 {
     // Definition at line 76 of file stm32/f1/memorymap.h.
@@ -61,9 +65,25 @@ inline uint32_t _abst_opencm_rcc_gpio_conv(const uint8_t port)
     return _REG_BIT(0x18, port + 2);
 }
 
-#endif // STM32F1
+inline uint32_t _abst_opencm_adc_conv(const uint8_t adc_n)
+{
+    // Definition at line 83 of file stm32/f1/memorymap.h.
+    return PERIPH_BASE_APB2 + 0x2400 + 0x400 * (adc_n - 1);
+}
 
-#ifdef STM32F4
+inline uint32_t _abst_opencm_rcc_adc_conv(const uint8_t adc_n)
+{
+    return _REG_BIT(0x18, adc_n + 9 - 1);
+}
+
+inline uint8_t _abst_conv_adc_samle_time(uint8_t sample_time)
+{
+    return sample_time; // The same order
+}
+
+#endif // STM32F1 ============================================
+
+#ifdef STM32F4 // ============================================
 
 inline uint32_t _abst_opencm_port_conv(const uint8_t port)
 {
@@ -90,9 +110,7 @@ inline uint8_t _abst_conv_adc_samle_time(uint8_t sample_time)
 {
     return sample_time; // The same order
 }
+#endif // STM32F4 ==============================================
 
-uint32_t _abst_conv_adc_resolution(uint8_t resolution);
-
-#endif // STM32F4
 
 #endif //_ABST_LIBOPENCM3_H_

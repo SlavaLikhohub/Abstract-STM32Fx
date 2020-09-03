@@ -84,7 +84,9 @@ struct abst_pin {
 
     /**
      * Sample time for an ADC. Set **NULL** if an ADC is not used.
-     * :c:type:`abst_adc_sample_time`
+     * :c:type:`abst_adc_sample_time_f1` for STM32F1
+     * or 
+     * :c:type:`abst_adc_sample_time_f4` for STM32F4
      */
     uint8_t adc_sample_time;
 
@@ -223,25 +225,48 @@ enum abst_pin_speed
     ABST_OSPEED_100MHZ
 };
 
-/** Sample time of ADC */
-enum abst_adc_sample_time
+/** Sample time of ADC in cycles for STM32F4*/
+enum abst_adc_sample_time_f4
 {
-    /** 3 cycle */
+    /** 3 cycles */
     ABST_ADC_SMPR_SMP_3CYC = 0,
-    /** 15 cycle */
+    /** 15 cycles */
     ABST_ADC_SMPR_SMP_15CYC,
-    /** 28 cycle */
+    /** 28 cycles */
     ABST_ADC_SMPR_SMP_28CYC,
-    /** 56 cycle */
+    /** 56 cycles */
     ABST_ADC_SMPR_SMP_56CYC,
-    /** 84 cycle */
+    /** 84 cycles */
     ABST_ADC_SMPR_SMP_84CYC,
-    /** 112 cycle */
+    /** 112 cycles */
     ABST_ADC_SMPR_SMP_112CYC,
-    /** 144 cycle */
+    /** 144 cycles */
     ABST_ADC_SMPR_SMP_144CYC,
-    /** 480 cycle */
+    /** 480 cycles */
     ABST_ADC_SMPR_SMP_480CYC,
+};
+
+/** 
+ * Sample time of ADC in cycles for STM32F1.
+ */
+enum abst_adc_sample_time_f1
+{
+    /** 1.5 cycle */
+    ABST_ADC_SMPR_SMP_1DOT5CYC = 0,
+    /** 7.5 cycles */
+    ABST_ADC_SMPR_SMP_7DOT5CYC,
+    /** 13.5 cycles */
+    ABST_ADC_SMPR_SMP_13DOT5CYC,
+    /** 28.5 cycles */
+    ABST_ADC_SMPR_SMP_28DOT5CYC,
+    /** 41.5 cycles */
+    ABST_ADC_SMPR_SMP_41DOT5CYC,
+    /** 55.5 cycles */
+    ABST_ADC_SMPR_SMP_55DOT5CYC,
+    /** 71.5 cycles */
+    ABST_ADC_SMPR_SMP_71DOT5CYC,
+    /** 239.5 cycles */
+    ABST_ADC_SMPR_SMP_239DOT5CYC
 };
 
 /** Resolution of ADC */

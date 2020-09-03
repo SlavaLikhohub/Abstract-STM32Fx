@@ -7,6 +7,7 @@
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/adc.h>
+#include <stdint.h>
 
 /**
  * Helper function for initializing SysTick.
@@ -71,12 +72,12 @@ void _abst_init_hard_pwm_tim1(uint32_t anb, uint32_t hard_pwm_freq)
  * :param speed: GPIO Output Pin Speed :c:type:`abst_pin_speed`
  * :return: Mode descriptor from libopencm3.
  */
-uint8_t _abst_conv_mode(uint8_t mode, uint8_t speed)
+static uint8_t _abst_conv_mode(uint8_t mode, uint8_t speed)
 {
 #ifdef STM32F1
     uint8_t f1_mode = GPIO_MODE_INPUT; // Default
     
-    if (mode == ABST_MODE_INPUT)
+    if (mode == ABST_MODE_INPUT || mode == ABST_MODE_ANALOG)
         f1_mode = GPIO_MODE_INPUT;
     else if (speed == ABST_OSPEED_2MHZ)
         f1_mode = GPIO_MODE_OUTPUT_2_MHZ;
@@ -100,7 +101,7 @@ uint8_t _abst_conv_mode(uint8_t mode, uint8_t speed)
  * :param otype: GPIO Output Pins Driver Type :c:type:`abst_pin_otype`
  * :return: Config descriptor from libopencm3.
  */
-uint8_t _abst_conv_cnf(uint8_t mode, uint8_t otype)
+static uint8_t _abst_conv_cnf(uint8_t mode, uint8_t otype)
 {
 #ifdef STM32F1
     uint8_t f1_cnf = GPIO_CNF_INPUT_FLOAT; // Default
@@ -131,7 +132,7 @@ uint8_t _abst_conv_cnf(uint8_t mode, uint8_t otype)
  * :param speed: GPIO Output Pin Speed :c:type:`abst_pin_speed`
  * :return: Speed descriptor from libopencm3.
  */
-uint8_t _abst_conv_speed(uint8_t speed)
+static uint8_t _abst_conv_speed(uint8_t speed)
 {
 #ifdef STM32F4
     uint32_t f4_speed;
@@ -157,6 +158,52 @@ uint8_t _abst_conv_speed(uint8_t speed)
 #endif // STM32F4
 
     return 0; // If not STM32F4
+}
+
+/**
+ * Helper function to converting prescaler div ratio to libopencm3 analog
+ * 
+ * :param prescale: Prescale: 2, 4, 6, 8.
+ * :return: libopencm3 definition or default value (PRESCK 2) if prescale is wrong.
+ */ 
+static uint32_t _abst_conv_adc_prescale(uint8_t prescale)
+{
+#ifdef STM32F1
+    switch (prescale) {
+        case 2:
+            return RCC_CFGR_ADCPRE_PCLK2_DIV2;
+            break;
+        case 4:
+            return RCC_CFGR_ADCPRE_PCLK2_DIV4;
+            break;
+        case 6:
+            return RCC_CFGR_ADCPRE_PCLK2_DIV6;
+            break;
+        case 8:
+            return RCC_CFGR_ADCPRE_PCLK2_DIV8;
+            break;
+        default:
+            return RCC_CFGR_ADCPRE_PCLK2_DIV2;
+    }
+#endif // STM32F1
+#ifdef STM32F4
+    switch (prescale) {
+        case 2:
+            return ADC_CCR_ADCPRE_BY2;
+            break;
+        case 4:
+            return ADC_CCR_ADCPRE_BY2;
+            break;
+        case 6:
+            return ADC_CCR_ADCPRE_BY2;
+            break;
+        case 8:
+            return ADC_CCR_ADCPRE_BY2;
+            break;
+        default:
+            return ADC_CCR_ADCPRE_BY2;
+    }
+#endif // STM32F4
 }
 
 /**
@@ -228,24 +275,7 @@ enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale)
     if (adc_n < 1 || adc_n > 3)
         return ABST_WRONG_PARAMS;
 
-    uint8_t openocd_presc = 0;
-    switch (prescale) {
-        case 2:
-            openocd_presc = ADC_CCR_ADCPRE_BY2;
-            break;
-        case 4:
-            openocd_presc = ADC_CCR_ADCPRE_BY2;
-            break;
-        case 6:
-            openocd_presc = ADC_CCR_ADCPRE_BY2;
-            break;
-        case 8:
-            openocd_presc = ADC_CCR_ADCPRE_BY2;
-            break;
-        default:
-            return ABST_WRONG_PARAMS;
-    }
-
+    uint8_t openocd_presc = _abst_conv_adc_prescale(prescale);
     uint32_t opencm_adc = _abst_opencm_adc_conv(adc_n);
     uint32_t opencm_rcc_adc = _abst_opencm_rcc_adc_conv(adc_n);
 
@@ -253,6 +283,17 @@ enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale)
 
     adc_power_off(opencm_adc);
 
+#ifdef STM32F1
+    rcc_set_adcpre(openocd_presc);
+
+    adc_set_dual_mode(ADC_CR1_DUALMOD_IND);
+
+    adc_disable_scan_mode(opencm_adc);
+
+    adc_set_single_conversion_mode(opencm_adc);
+#endif // STM32F1
+
+#ifdef STM32F4
     adc_set_clk_prescale(openocd_presc);
 
     adc_disable_scan_mode(opencm_adc);
@@ -260,6 +301,7 @@ enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale)
     adc_set_single_conversion_mode(opencm_adc);
 
     adc_set_multi_mode(ADC_CCR_MULTI_INDEPENDENT);
+#endif // STM32F4
 }
 
 /**
@@ -269,14 +311,20 @@ enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale)
  */
 enum abst_errors _abst_init_adc_channel(const struct abst_pin *pin_ptr)
 {
-#ifdef STM32F4
     uint32_t openocd_adc = _abst_opencm_adc_conv(pin_ptr->adc_num);
+    uint32_t openocd_sample_time = _abst_conv_adc_samle_time(pin_ptr->adc_sample_time);
 
-    adc_set_sample_time(openocd_adc, pin_ptr->adc_channel, pin_ptr->adc_sample_time);
+    adc_set_sample_time(openocd_adc, pin_ptr->adc_channel, openocd_sample_time);
     
-    adc_set_multi_mode(ADC_CCR_MULTI_INDEPENDENT);
-
     adc_power_on(openocd_adc);
 
-#endif
+#ifdef STM32F1 // Extra settings for STM32F1
+    adc_enable_external_trigger_regular(openocd_adc, ADC_CR2_EXTSEL_SWSTART);
+
+    adc_reset_calibration(openocd_adc);
+    
+    adc_calibrate(openocd_adc);
+#endif // STM32F1
+
+    return ABST_OK;
 }

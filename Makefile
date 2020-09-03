@@ -5,8 +5,8 @@ DOC_FORMAT = html
 
 PREFIX		?= arm-none-eabi-
 
-DEBUG_FLAGS ?= -ggdb3
-STANDARD_FLAGS ?= -std=gnu17
+DEBUG_FLAGS ?= -ggdb3 -O1
+STANDARD_FLAGS ?= -std=gnu17 -Os
 BUILD_DIR := ./build
 SRC_DIR := ./src
 INC_DIRS := ./include

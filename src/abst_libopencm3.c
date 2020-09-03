@@ -3,9 +3,13 @@
 
 #include <libopencm3/stm32/adc.h>
 
-#ifdef STM32F4
 uint32_t _abst_conv_adc_resolution(uint8_t resolution)
 {
+#ifdef STM32F1
+    return 0; // Not implemented in STM32F1
+#endif // STM32F1
+
+#ifdef STM32F4
     switch (resolution) {
         case ABST_ADC_RES_12BIT:
             return ADC_CR1_RES_12BIT;
@@ -22,6 +26,6 @@ uint32_t _abst_conv_adc_resolution(uint8_t resolution)
         default:
             return 0; // Wrong argument
     }
+#endif // STM32F4
 }
 
-#endif // STM32F4
