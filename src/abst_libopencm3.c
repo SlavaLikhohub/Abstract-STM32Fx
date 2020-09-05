@@ -1,31 +1,35 @@
 #include "abst_libopencm3.h"
-#include "abstractSTM32.h"
 
-#include <libopencm3/stm32/adc.h>
-
-uint32_t _abst_conv_adc_resolution(uint8_t resolution)
+uint32_t _REG_BIT(uint32_t base, uint32_t bit)
 {
-#ifdef STM32F1
-    return 0; // Not implemented in STM32F1
-#endif // STM32F1
-
-#ifdef STM32F4
-    switch (resolution) {
-        case ABST_ADC_RES_12BIT:
-            return ADC_CR1_RES_12BIT;
-            break;
-        case ABST_ADC_RES_10BIT:
-            return ADC_CR1_RES_10BIT;
-            break;
-        case ABST_ADC_RES_8BIT:
-            return ADC_CR1_RES_8BIT;
-            break;
-        case ABST_ADC_RES_6BIT:
-            return ADC_CR1_RES_6BIT;
-            break;
-        default:
-            return 0; // Wrong argument
-    }
-#endif // STM32F4
+    return (((base) << 5) + (bit));
 }
 
+#ifdef STM32F1 // =======================================
+inline uint32_t _abst_opencm_port_conv(const uint8_t port)
+{
+    // Definition at line 76 of file stm32/f1/memorymap.h.
+    return PERIPH_BASE_APB2 + 0x0400 * (port + 2); 
+}
+
+
+inline uint32_t _abst_opencm_rcc_gpio_conv(const uint8_t port)
+{
+    // Definition at line 552 of file f1/rcc.h.
+    return _REG_BIT(0x18, port + 2);
+}
+
+#endif // STM32F1 ============================================
+
+#ifdef STM32F4 // ============================================
+
+uint32_t _abst_opencm_port_conv(const uint8_t port)
+{
+    return PERIPH_BASE_AHB1 + 0x0400 * port;
+}
+
+uint32_t _abst_opencm_rcc_gpio_conv(const uint8_t port)
+{
+    return _REG_BIT(0x30, port);
+}
+#endif // STM32F4 ==============================================

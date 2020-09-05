@@ -6,7 +6,6 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
-#include <libopencm3/stm32/adc.h>
 #include <stdint.h>
 
 /**
@@ -161,52 +160,6 @@ static uint8_t _abst_conv_speed(uint8_t speed)
 }
 
 /**
- * Helper function to converting prescaler div ratio to libopencm3 analog
- * 
- * :param prescale: Prescale: 2, 4, 6, 8.
- * :return: libopencm3 definition or default value (PRESCK 2) if prescale is wrong.
- */ 
-static uint32_t _abst_conv_adc_prescale(uint8_t prescale)
-{
-#ifdef STM32F1
-    switch (prescale) {
-        case 2:
-            return RCC_CFGR_ADCPRE_PCLK2_DIV2;
-            break;
-        case 4:
-            return RCC_CFGR_ADCPRE_PCLK2_DIV4;
-            break;
-        case 6:
-            return RCC_CFGR_ADCPRE_PCLK2_DIV6;
-            break;
-        case 8:
-            return RCC_CFGR_ADCPRE_PCLK2_DIV8;
-            break;
-        default:
-            return RCC_CFGR_ADCPRE_PCLK2_DIV2;
-    }
-#endif // STM32F1
-#ifdef STM32F4
-    switch (prescale) {
-        case 2:
-            return ADC_CCR_ADCPRE_BY2;
-            break;
-        case 4:
-            return ADC_CCR_ADCPRE_BY2;
-            break;
-        case 6:
-            return ADC_CCR_ADCPRE_BY2;
-            break;
-        case 8:
-            return ADC_CCR_ADCPRE_BY2;
-            break;
-        default:
-            return ADC_CCR_ADCPRE_BY2;
-    }
-#endif // STM32F4
-}
-
-/**
  * Helper function for pin initializing. 
  * Is called from :c:func:`abst_gpio_init` and :c:func:`abst_group_gpio_init`.
  *
@@ -259,72 +212,4 @@ void _abst_init_pins(   uint8_t port,
 
     gpio_set_mode(opencm_port, f1_mode, f1_cnf, num);
 #endif
-}
-
-/**
- * Helper function for initializing an ADC in single convesation mode with scan mode disabled
- * After initializing an ADC is turned off.
- * Called from :c:func:`abst_init`
- *
- * :param adc_n: Number of ADC (1-3). If specified another the function will return :c:member:`abst_errors.ABST_WRONG_PARAMS`
- * :param prescale: Prescale: 2, 4, 6, 8. If specified another the function will return :c:member:`abst_errors.ABST_WRONG_PARAMS`
- * :return: Error code according to :c:type:`abst_errors`.
- */
-enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale)
-{
-    if (adc_n < 1 || adc_n > 3)
-        return ABST_WRONG_PARAMS;
-
-    uint8_t openocd_presc = _abst_conv_adc_prescale(prescale);
-    uint32_t opencm_adc = _abst_opencm_adc_conv(adc_n);
-    uint32_t opencm_rcc_adc = _abst_opencm_rcc_adc_conv(adc_n);
-
-    rcc_periph_clock_enable(opencm_rcc_adc);
-
-    adc_power_off(opencm_adc);
-
-#ifdef STM32F1
-    rcc_set_adcpre(openocd_presc);
-
-    adc_set_dual_mode(ADC_CR1_DUALMOD_IND);
-
-    adc_disable_scan_mode(opencm_adc);
-
-    adc_set_single_conversion_mode(opencm_adc);
-#endif // STM32F1
-
-#ifdef STM32F4
-    adc_set_clk_prescale(openocd_presc);
-
-    adc_disable_scan_mode(opencm_adc);
-
-    adc_set_single_conversion_mode(opencm_adc);
-
-    adc_set_multi_mode(ADC_CCR_MULTI_INDEPENDENT);
-#endif // STM32F4
-}
-
-/**
- * Helper function for initializing ADC channel based on information from :c:type:`abst_pin`.
- *
- * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
- */
-enum abst_errors _abst_init_adc_channel(const struct abst_pin *pin_ptr)
-{
-    uint32_t openocd_adc = _abst_opencm_adc_conv(pin_ptr->adc_num);
-    uint32_t openocd_sample_time = _abst_conv_adc_samle_time(pin_ptr->adc_sample_time);
-
-    adc_set_sample_time(openocd_adc, pin_ptr->adc_channel, openocd_sample_time);
-    
-    adc_power_on(openocd_adc);
-
-#ifdef STM32F1 // Extra settings for STM32F1
-    adc_enable_external_trigger_regular(openocd_adc, ADC_CR2_EXTSEL_SWSTART);
-
-    adc_reset_calibration(openocd_adc);
-    
-    adc_calibrate(openocd_adc);
-#endif // STM32F1
-
-    return ABST_OK;
 }

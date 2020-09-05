@@ -5,7 +5,7 @@ DOC_FORMAT = html
 
 PREFIX		?= arm-none-eabi-
 
-DEBUG_FLAGS ?= -ggdb3 -O1
+DEBUG_FLAGS ?= -std=gnu17 -ggdb3 -O0
 STANDARD_FLAGS ?= -std=gnu17 -Os
 BUILD_DIR := ./build
 SRC_DIR := ./src
@@ -13,6 +13,8 @@ INC_DIRS := ./include
 SOURCES := abstractSTM32.c
 SOURCES += abstractLCD.c
 SOURCES += abstractINIT.c
+SOURCES += abstractADC.c
+SOURCES += abstractDMA.c
 SOURCES += abst_libopencm3.c
 
 CC		= $(PREFIX)gcc

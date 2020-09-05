@@ -225,59 +225,6 @@ enum abst_pin_speed
     ABST_OSPEED_100MHZ
 };
 
-/** Sample time of ADC in cycles for STM32F4*/
-enum abst_adc_sample_time_f4
-{
-    /** 3 cycles */
-    ABST_ADC_SMPR_SMP_3CYC = 0,
-    /** 15 cycles */
-    ABST_ADC_SMPR_SMP_15CYC,
-    /** 28 cycles */
-    ABST_ADC_SMPR_SMP_28CYC,
-    /** 56 cycles */
-    ABST_ADC_SMPR_SMP_56CYC,
-    /** 84 cycles */
-    ABST_ADC_SMPR_SMP_84CYC,
-    /** 112 cycles */
-    ABST_ADC_SMPR_SMP_112CYC,
-    /** 144 cycles */
-    ABST_ADC_SMPR_SMP_144CYC,
-    /** 480 cycles */
-    ABST_ADC_SMPR_SMP_480CYC,
-};
-
-/** 
- * Sample time of ADC in cycles for STM32F1.
- */
-enum abst_adc_sample_time_f1
-{
-    /** 1.5 cycle */
-    ABST_ADC_SMPR_SMP_1DOT5CYC = 0,
-    /** 7.5 cycles */
-    ABST_ADC_SMPR_SMP_7DOT5CYC,
-    /** 13.5 cycles */
-    ABST_ADC_SMPR_SMP_13DOT5CYC,
-    /** 28.5 cycles */
-    ABST_ADC_SMPR_SMP_28DOT5CYC,
-    /** 41.5 cycles */
-    ABST_ADC_SMPR_SMP_41DOT5CYC,
-    /** 55.5 cycles */
-    ABST_ADC_SMPR_SMP_55DOT5CYC,
-    /** 71.5 cycles */
-    ABST_ADC_SMPR_SMP_71DOT5CYC,
-    /** 239.5 cycles */
-    ABST_ADC_SMPR_SMP_239DOT5CYC
-};
-
-/** Resolution of ADC */
-enum abst_adc_resolution 
-{
-    ABST_ADC_RES_12BIT = 0,
-    ABST_ADC_RES_10BIT,
-    ABST_ADC_RES_8BIT, 
-    ABST_ADC_RES_6BIT 
-};
-
 void abst_init(uint32_t anb, uint32_t hard_pwm_freq);
 
 enum abst_errors abst_gpio_init(const struct abst_pin *pin_ptr);
@@ -301,8 +248,6 @@ void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value);
 bool abst_stop_pwm_soft(struct abst_pin *pin_ptr);
 
 void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value);
-
-uint16_t abst_adc_read(struct abst_pin *pin_ptr);
 
 void abst_delay_ms(uint32_t miliseconds);
 

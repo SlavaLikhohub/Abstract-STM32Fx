@@ -1,5 +1,6 @@
 #include "abstractSTM32.h"
 #include "abst_libopencm3.h"
+#include "abstractINIT.h"
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/stm32/gpio.h>
@@ -114,7 +115,7 @@ void abst_init(uint32_t anb, uint32_t hard_pwm_freq)
     _abst_init_hard_pwm_tim1(anb, hard_pwm_freq);
 
     // ADC
-    _abst_adc_init_single_conv(1, 2);
+    //_abst_adc_init_single_conv(1, 2);
 }
 
 
@@ -156,7 +157,7 @@ enum abst_errors abst_gpio_init(const struct abst_pin *pin_ptr)
     // Setup channel of ADC
     if (pin_ptr->mode == ABST_MODE_ANALOG && pin_ptr->adc_sample_time != NULL) {
         enum abst_errors res = _abst_init_adc_channel(pin_ptr);
-        if (res != 0)
+        if (res != ABST_OK)
             return res; // Initialization failed
     }
 
@@ -365,58 +366,6 @@ void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value)
 }
 
 /**
- * Read analog value from the pin via the Analog to Digital Converter
- *
- * :param pin_ptr: Pointer to :c:type:`abst_pin` with filled parameters.
- * :return: Read value (12 bit)
- */
-uint16_t abst_adc_read(struct abst_pin *pin_ptr)
-{
-    if (pin_ptr == NULL)
-        return 0;
-
-    uint32_t openocd_adc = _abst_opencm_adc_conv(pin_ptr->adc_num);
-
-
-#ifdef STM32F4 // Apparat resolution
-    adc_set_resolution(openocd_adc, _abst_conv_adc_resolution(pin_ptr->adc_resolution));
-#endif // STM32F4
-
-    uint8_t channels[] = {pin_ptr->adc_channel};
-
-    adc_set_regular_sequence(openocd_adc, 1, channels);
-
-    adc_start_conversion_regular(openocd_adc);
-
-    while (!adc_eoc(openocd_adc));
-
-    uint16_t result = adc_read_regular(openocd_adc);
-#ifdef STM32F4
-    return result;
-#endif // STM32F4
-
-
-#ifdef STM32F1 // Software resolution
-    switch (pin_ptr->adc_resolution) {
-        case ABST_ADC_RES_12BIT:
-            return result >> 0;
-            break;
-        case ABST_ADC_RES_10BIT:
-            return result >> 2;
-            break;
-        case ABST_ADC_RES_8BIT:
-            return result >> 4;
-            break;
-        case ABST_ADC_RES_6BIT:
-            return result >> 6;
-            break;
-        default:
-            return result;
-    }
-#endif // STM32F1
-}
-
-/**
  * Stop program for a given time.
  *
  * :param miliseconds: Time to wait.
@@ -435,7 +384,8 @@ void abst_delay_ms(uint32_t miliseconds)
  */
 void abst_delay_us(uint32_t microseconds)
 {
-    abst_delay_ms((microseconds % 1000) ? (1 + microseconds / 1000) : (microseconds / 1000));
+    //abst_delay_ms((microseconds % 1000) ? (1 + microseconds / 1000) : (microseconds / 1000));
+    while (microseconds-- * (frequency / 1e6) > 0);
 }
 
 /**

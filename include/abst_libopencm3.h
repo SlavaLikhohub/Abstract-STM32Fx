@@ -37,6 +37,7 @@
 #define _ABST_LIBOPENCM3_H_
 
 #include <libopencm3/stm32/gpio.h>
+#include <stdint.h>
 
 #ifdef STM32F1
 
@@ -46,71 +47,13 @@
 #endif // STM32F1
 
 // COMMON DEFINITIONS
-#define _REG_BIT(base, bit)		(((base) << 5) + (bit))
+uint32_t _REG_BIT(uint32_t base, uint32_t bit);
 
-uint32_t _abst_conv_adc_resolution(uint8_t resolution);
+//#define _REG_BIT(base, bit)		(((base) << 5) + (bit))
 
+uint32_t _abst_opencm_port_conv(const uint8_t port);
 
-#ifdef STM32F1 // =======================================
-inline uint32_t _abst_opencm_port_conv(const uint8_t port)
-{
-    // Definition at line 76 of file stm32/f1/memorymap.h.
-    return PERIPH_BASE_APB2 + 0x0400 * (port + 2); 
-}
-
-
-inline uint32_t _abst_opencm_rcc_gpio_conv(const uint8_t port)
-{
-    // Definition at line 552 of file f1/rcc.h.
-    return _REG_BIT(0x18, port + 2);
-}
-
-inline uint32_t _abst_opencm_adc_conv(const uint8_t adc_n)
-{
-    // Definition at line 83 of file stm32/f1/memorymap.h.
-    return PERIPH_BASE_APB2 + 0x2400 + 0x400 * (adc_n - 1);
-}
-
-inline uint32_t _abst_opencm_rcc_adc_conv(const uint8_t adc_n)
-{
-    return _REG_BIT(0x18, adc_n + 9 - 1);
-}
-
-inline uint8_t _abst_conv_adc_samle_time(uint8_t sample_time)
-{
-    return sample_time; // The same order
-}
-
-#endif // STM32F1 ============================================
-
-#ifdef STM32F4 // ============================================
-
-inline uint32_t _abst_opencm_port_conv(const uint8_t port)
-{
-    return PERIPH_BASE_AHB1 + 0x0400 * port;
-}
-
-inline uint32_t _abst_opencm_rcc_gpio_conv(const uint8_t port)
-{
-    return _REG_BIT(0x30, port);
-}
-
-inline uint32_t _abst_opencm_adc_conv(const uint8_t adc_n)
-{
-    // Definition at line 79 of file stm32/f4/memorymap.h.
-    return PERIPH_BASE_APB2 + 0x2000 + 0x100 * (adc_n - 1);
-}
-
-inline uint32_t _abst_opencm_rcc_adc_conv(const uint8_t adc_n)
-{
-    return _REG_BIT(0x44, adc_n + 7);
-}
-
-inline uint8_t _abst_conv_adc_samle_time(uint8_t sample_time)
-{
-    return sample_time; // The same order
-}
-#endif // STM32F4 ==============================================
+uint32_t _abst_opencm_rcc_gpio_conv(const uint8_t port);
 
 
 #endif //_ABST_LIBOPENCM3_H_

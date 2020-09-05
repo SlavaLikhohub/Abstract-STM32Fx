@@ -345,7 +345,8 @@ void abst_lcd_put_str_sm(const struct abst_lcd *lcd_ptr, char *str, uint32_t int
         abst_lcd_put_char(lcd_ptr, *str);
         str++;
 
-        lcd_delay(lcd_ptr, interval_ms * 1000);
+        if (interval_ms != 0)
+            lcd_delay(lcd_ptr, interval_ms * 1000);
     }
 }
 

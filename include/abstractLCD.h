@@ -45,14 +45,14 @@ struct abst_lcd {
      * If NULL is set delay_us will be used.
      * If both pointers set to NULL functions from AbstractSTM32Fx will be used.
      */
-    void (*delay_ms)(uint64_t);
+    void (*delay_ms)(uint32_t);
 
     /** 
      * Pointer to the microseconds delay function. 
      * If NULL is set delay_ms will be used. 
      * If both pointers set to NULL functions from AbstractSTM32Fx will be used.
      */
-    void (*delay_us)(uint64_t);
+    void (*delay_us)(uint32_t);
 
     /** True if half-byte mode, false overwise */
     uint8_t is_half_byte : 1;
