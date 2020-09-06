@@ -1,6 +1,6 @@
 #include "abst_libopencm3.h"
 
-uint32_t _REG_BIT(uint32_t base, uint32_t bit)
+uint32_t _ABST_REG_BIT(uint32_t base, uint32_t bit)
 {
     return (((base) << 5) + (bit));
 }
@@ -16,7 +16,7 @@ inline uint32_t _abst_opencm_port_conv(const uint8_t port)
 inline uint32_t _abst_opencm_rcc_gpio_conv(const uint8_t port)
 {
     // Definition at line 552 of file f1/rcc.h.
-    return _REG_BIT(0x18, port + 2);
+    return _ABST_REG_BIT(0x18, port + 2);
 }
 
 #endif // STM32F1 ============================================
@@ -30,6 +30,6 @@ uint32_t _abst_opencm_port_conv(const uint8_t port)
 
 uint32_t _abst_opencm_rcc_gpio_conv(const uint8_t port)
 {
-    return _REG_BIT(0x30, port);
+    return _ABST_REG_BIT(0x30, port);
 }
 #endif // STM32F4 ==============================================

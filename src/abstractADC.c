@@ -7,9 +7,6 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/adc.h>
 
-#include <libopencm3/cm3/cortex.h>
-#include <libopencm3/cm3/nvic.h>//!!!!!!
-
 static inline uint32_t _abst_opencm_adc_conv(const uint8_t adc_n)
 {
 #ifdef STM32F1
@@ -24,10 +21,10 @@ static inline uint32_t _abst_opencm_adc_conv(const uint8_t adc_n)
 static inline uint32_t _abst_opencm_rcc_adc_conv(const uint8_t adc_n)
 {
 #ifdef STM32F1
-    return _REG_BIT(0x18, adc_n + 9 - 1);
+    return _ABST_REG_BIT(0x18, adc_n + 9 - 1);
 #endif
 #ifdef STM32F4
-    return _REG_BIT(0x44, adc_n + 7);
+    return _ABST_REG_BIT(0x44, adc_n + 7);
 #endif // STM32F4
 }
 
@@ -118,7 +115,7 @@ static uint32_t _abst_conv_adc_prescale(uint8_t prescale)
  * :param prescale: Prescale: 2, 4, 6, 8. If specified another the function will return :c:member:`abst_errors.ABST_WRONG_PARAMS`
  * :return: Error code according to :c:type:`abst_errors`.
  */
-enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale)
+enum abst_errors abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale)
 {
     if (adc_n < 1 || adc_n > 3)
         return ABST_WRONG_PARAMS;
@@ -163,16 +160,22 @@ enum abst_errors _abst_init_adc_channel(const struct abst_pin *pin_ptr)
     uint32_t opencm_adc = _abst_opencm_adc_conv(pin_ptr->adc_num);
     uint32_t opencm_sample_time = _abst_conv_adc_samle_time(pin_ptr->adc_sample_time);
 
+    uint32_t opencm_rcc_adc = _abst_opencm_rcc_adc_conv(pin_ptr->adc_num);
+
+    rcc_periph_clock_enable(opencm_rcc_adc);
+
     adc_set_sample_time(opencm_adc, pin_ptr->adc_channel, opencm_sample_time);
     
-    //adc_power_on(opencm_adc);
+    adc_power_on(opencm_adc);
 
 #ifdef STM32F1 // Extra settings for STM32F1
+    
     adc_enable_external_trigger_regular(opencm_adc, ADC_CR2_EXTSEL_SWSTART);
 
     adc_reset_calibration(opencm_adc);
     
     adc_calibrate(opencm_adc);
+
 #endif // STM32F1
 
     return ABST_OK;
@@ -198,14 +201,12 @@ uint16_t abst_adc_read(struct abst_pin *pin_ptr)
     uint8_t channels[] = {pin_ptr->adc_channel};
     adc_set_regular_sequence(opencm_adc, 1, channels);
 
-    adc_power_on(opencm_adc);
     adc_start_conversion_regular(opencm_adc);
 
     while (!adc_eoc(opencm_adc));
 
     uint16_t result = adc_read_regular(opencm_adc);
     
-    adc_power_off(opencm_adc);
 #ifdef STM32F4
     return result;
 #endif // STM32F4
@@ -320,11 +321,14 @@ enum abst_errors abst_adc_read_cont(struct abst_pin *pins_arr[],
     if (status != ABST_OK)
         return status;
     
+    for (uint8_t i = 0; i < N; i++) {
+        abst_gpio_init(pins_arr[i]);
+    }
+
     uint32_t opencm_adc = _abst_opencm_adc_conv(pins_arr[0]->adc_num);
 
 #ifdef STM32F4 // Hardware resolution
     adc_set_resolution(opencm_adc, _abst_conv_adc_resolution(pins_arr[0]->adc_resolution));
-
 #endif // STM32F4
 
     uint8_t channels[N];
@@ -336,7 +340,31 @@ enum abst_errors abst_adc_read_cont(struct abst_pin *pins_arr[],
 
     // DMA
     adc_enable_dma(opencm_adc);
+#ifdef STM32F4
     adc_set_dma_continue(opencm_adc);
+#endif // STM32F4
+
+#ifdef STM32F1
+    // STM32F1 Reference manual p.282
+
+    enum abst_dma dma;
+    uint8_t stream = 0; // Don't care
+    uint8_t channel;
+    switch (pins_arr[0]->adc_num) {
+        case 1:
+            dma = ABST_DMA_1;
+            channel = 1;
+            break;
+        case 3:
+            // ADC3 requests are available only in high-density and XL-density devices.
+            dma = ABST_DMA_2;
+            channel = 5; 
+            break;
+        default:
+            return ABST_WRONG_PARAMS;
+    }
+    uint16_t *src_addr = &ADC_DR(opencm_adc);
+#endif // STM32F1
 
 #ifdef STM32F4
     // STM32F4 Reference manual p.308
@@ -362,7 +390,6 @@ enum abst_errors abst_adc_read_cont(struct abst_pin *pins_arr[],
     }
     uint16_t *src_addr = &ADC_DR(opencm_adc);
 #endif // STM32F4
-
     enum abst_errors err = abst_init_dma_p2m_direct(dma, 
                                                     stream, 
                                                     channel, 
@@ -375,11 +402,7 @@ enum abst_errors abst_adc_read_cont(struct abst_pin *pins_arr[],
     if (err != ABST_OK)
         return err;
 
-    adc_clear_flag(opencm_adc, ADC_SR_STRT);
-    adc_clear_flag(opencm_adc, ADC_SR_EOC);
-
-    adc_power_on(opencm_adc);
     adc_start_conversion_regular(opencm_adc);
-    
+
     return ABST_OK;
 }

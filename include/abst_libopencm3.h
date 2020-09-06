@@ -47,9 +47,9 @@
 #endif // STM32F1
 
 // COMMON DEFINITIONS
-uint32_t _REG_BIT(uint32_t base, uint32_t bit);
+uint32_t _ABST_REG_BIT(uint32_t base, uint32_t bit);
 
-//#define _REG_BIT(base, bit)		(((base) << 5) + (bit))
+//#define _ABST_REG_BIT(base, bit)		(((base) << 5) + (bit))
 
 uint32_t _abst_opencm_port_conv(const uint8_t port);
 

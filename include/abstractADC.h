@@ -64,7 +64,7 @@ uint16_t abst_adc_read(struct abst_pin *pin_ptr);
 
 enum abst_errors _abst_init_adc_channel(const struct abst_pin *pin_ptr);
 
-enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale);
+enum abst_errors abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale);
 
 enum abst_errors abst_adc_read_cont(struct abst_pin *pins_arr[], 
                                     uint16_t dest_arr[], 

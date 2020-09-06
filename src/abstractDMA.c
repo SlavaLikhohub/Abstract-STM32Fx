@@ -61,10 +61,52 @@ enum abst_errors abst_init_dma_p2m_direct(enum abst_dma abst_dma,
 {
     rcc_periph_clock_enable(_abst_conv_dma_rcc(abst_dma));
 
+#ifdef STM32F1
+    uint32_t dma = _abst_conv_dma(abst_dma);
+
+    dma_disable_channel(dma, channel);
+
+    // Wait untill stream will end up the transmission
+    uint32_t i = 0;
+    while ((DMA_CCR(dma, channel) & DMA_CCR_EN)) {
+        i++;
+        if (i > 5e6)
+            return ABST_UNKNOWN_ERROR;
+    }
+
+    dma_set_peripheral_address(dma, channel, src_addr);
+
+    dma_set_memory_address(dma, channel, dest_addr);
+
+    dma_set_number_of_data(dma, channel, items_num);
+
+    dma_set_priority(dma, channel, prior << 12);
+
+    dma_set_read_from_peripheral(dma, channel);
+    
+    dma_enable_circular_mode(dma, channel);
+
+    if (items_num > 1)
+        dma_enable_memory_increment_mode(dma, channel);
+    else 
+        dma_disable_memory_increment_mode(dma, channel);
+    
+    dma_disable_peripheral_increment_mode(dma, channel);
+    
+    dma_set_peripheral_size(dma, channel, periph_size << 8);
+
+    dma_set_memory_size(dma, channel, periph_size << 10);
+
+    dma_enable_channel(dma, channel);
+
+    return ABST_OK;
+#endif // STM32F1
+
+#ifdef STM32F4
     uint32_t dma = _abst_conv_dma(abst_dma);
     if (dma == NULL)
         return ABST_WRONG_PARAMS;
-    
+
     dma_disable_stream(dma, stream);
 
     uint32_t i = 0;
@@ -106,4 +148,6 @@ enum abst_errors abst_init_dma_p2m_direct(enum abst_dma abst_dma,
     dma_enable_stream(dma, stream);
 
     return ABST_OK;
+#endif // STM32F4
+    return ABST_NOT_IMPLEMENTED;
 }

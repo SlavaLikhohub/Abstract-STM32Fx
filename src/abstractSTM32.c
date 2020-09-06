@@ -27,8 +27,10 @@ static const uint32_t systick_fr = 1e4;
  */
 static void abst_soft_pwm_hander(void)
 {
-    list_node_t *node;
-    list_iterator_t *it = list_iterator_new(soft_pwm_list, LIST_HEAD);
+    static list_iterator_t *it;
+    static list_node_t *node;
+
+    it = list_iterator_new(soft_pwm_list, LIST_HEAD);
     
     // Reset all in first tick
     if (_pwm_cnt_ == 0) {
@@ -48,6 +50,7 @@ static void abst_soft_pwm_hander(void)
             }
         }
     }
+    
     free(it);
     _pwm_cnt_++;
     if (_pwm_cnt_ == 255)
