@@ -1,7 +1,7 @@
 Abstract LCD
 ============
 
-In this part of documentation describe module of symbolic LCD display.
+In this part of documentation describes module of symbolic LCD display.
 
 See example of working with LCD here `Abstact-STM32Fx-Sample <https://github.com/SlavaLikhohub/Abstract-STM32Fx-Sample>`_.
 

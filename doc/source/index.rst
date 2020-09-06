@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-AbstractSTM32Fx's documentation!
+AbstractSTM32Fx documentation
 ================================
 
 .. toctree::
@@ -12,7 +12,13 @@ AbstractSTM32Fx's documentation!
 
    abstractSTM.rst
    
+   abstractINIT.rst
+   
    abstractLCD.rst
+
+   abstractADC.rst
+
+   abstractDMA.rst
 
    
 

@@ -70,6 +70,7 @@ To build a documentation install
 .. code-block:: shell-session
 
    pip install sphinx==2.4.3
+   pip install sphinx_rtd_theme
 
 #. **Hawkmoth** (tested with 0.5 version)
 
@@ -79,7 +80,7 @@ To build a documentation install
 
 .. code-block:: shell-session
 
-   make doc
+   make documentation
 
 ``abstractSTM32.html`` link will apear in ``doc`` directory.
 

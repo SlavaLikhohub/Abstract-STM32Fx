@@ -93,6 +93,7 @@ static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
  * :param ahb: The current AHB frequency in Hz. 
  * :param hard_pwm_freq: Hard pulse wide modulation desired frequency (using TIM1). 
  *      Set **NULL** to disable hard PWM
+ *
  * If frequency changes recall this function with different values.
  */
 void abst_init(uint32_t anb, uint32_t hard_pwm_freq)

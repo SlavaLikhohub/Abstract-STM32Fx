@@ -50,9 +50,13 @@ enum abst_adc_sample_time_f1
 /** Resolution of ADC */
 enum abst_adc_resolution 
 {
+    /** 12 bits */
     ABST_ADC_RES_12BIT = 0,
+    /** 10 bits */
     ABST_ADC_RES_10BIT,
+    /** 8 bits */
     ABST_ADC_RES_8BIT, 
+    /** 6 bits */
     ABST_ADC_RES_6BIT 
 };
 
