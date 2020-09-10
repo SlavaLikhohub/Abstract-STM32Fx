@@ -24,5 +24,5 @@ TGT_CFLAGS	+= -Wall -Wextra -Wimplicit-function-declaration \
 		  -Wstrict-prototypes \
 		  -ffunction-sections -fdata-sections -MD
 # TGT_CFLAGS  += $(DEBUG_FLAGS)
-TGT_CFLAGS	+= 
+# TGT_CFLAGS	+= 
 ARFLAGS		= rcs

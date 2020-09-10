@@ -4,3 +4,6 @@
 [submodule "lib/list"]
 	path = lib/list
 	url = https://github.com/SlavaLikhohub/list.git
+[submodule "lib/fifo-buffer"]
+	path = lib/fifo-buffer
+	url = https://github.com/SlavaLikhohub/FIFO-Buffer

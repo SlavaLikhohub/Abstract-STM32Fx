@@ -8,13 +8,23 @@ include $(OPENCM3_DIR)/mk/genlink-config.mk
 # List library
 LIST_DIR = $(LIB_DIR)/list
 
+# FIFO buffer
+FIFO_DIR = $(LIB_DIR)/fifo-buffer
+
 # All includes semi-automatically collected here
-INCS = -I$(OPENCM3_DIR)/include -I$(LIST_DIR)/src $(addprefix -I,$(INC_DIRS))
+INCS =  -I$(OPENCM3_DIR)/include \
+		-I$(LIST_DIR)/src \
+		-I$(FIFO_DIR)/include \
+		$(addprefix -I,$(INC_DIRS))
+
+
+# Include rules to generate linker script
+include $(OPENCM3_DIR)/mk/genlink-rules.mk
 
 # libopencm3's flags
 CFLAGS = $(TGT_CFLAGS) $(genlink_cppflags)
 
-CFLAGS += $(INCS)
+
 
 $(BUILD_DIR)/$(ABST_LIBNAME).a: $(addprefix $(BUILD_DIR)/,$(SOURCES:.c=.o))
 	@echo Building $@ with $^ files
@@ -23,10 +33,10 @@ $(BUILD_DIR)/$(ABST_LIBNAME).a: $(addprefix $(BUILD_DIR)/,$(SOURCES:.c=.o))
 shared: $(BUILD_DIR)/$(ABST_LIBNAME).so
 
 $(BUILD_DIR)/$(ABST_LIBNAME).so: $(addprefix $(BUILD_DIR)/,$(SOURCES:.c=.o))
-	$(CC) -shared -o $@ $(CFLAGS) $(LDFLAGS) $^
+	$(CC) -shared -o $@ $(CFLAGS) $(INCS) $(LDFLAGS) $^
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DIR)
-	$(Q)$(CC) $(CFLAGS) -o $@ -c $<
+	$(Q)$(CC) $(CFLAGS) $(INCS) -o $@ -c $<
 
 $(BUILD_DIR):
 	-mkdir $(BUILD_DIR)
@@ -42,3 +52,9 @@ $(BUILD_DIR)/liblist.a: $(LIST_DIR)/build/liblist.a $(BUILD_DIR)
 
 $(LIST_DIR)/build/liblist.a:
 	cd $(LIST_DIR) && $(MAKE) CFLAGS="$(CFLAGS)"
+
+$(BUILD_DIR)/libfifo.a: $(FIFO_DIR)/.build/libfifo.a $(BUILD_DIR)
+	cp $< $@
+
+$(FIFO_DIR)/.build/libfifo.a:
+	cd $(FIFO_DIR) && $(MAKE) CC="$(CC)" AR="$(AR)" CFLAGS="$(CFLAGS) -DBUFF_STORED_T=$(FIFO_DATA_TYPE)" clean static_stm32
