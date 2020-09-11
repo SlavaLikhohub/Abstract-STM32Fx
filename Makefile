@@ -19,6 +19,7 @@ SOURCES += abstractINIT.c
 SOURCES += abstractADC.c
 SOURCES += abstractDMA.c
 SOURCES += abstractUSART.c
+SOURCES += abstractLOG.c
 SOURCES += abst_libopencm3.c
 
 CC		= $(PREFIX)gcc
