@@ -47,7 +47,7 @@ void abst_usart_log_init(void)
     abst_usart_init(&LOG_USART, 100);
 }
 
-/**
+/*
  * Send log message using USART3
  */
 void abst_usart_log_send(const char *msg)
@@ -55,7 +55,7 @@ void abst_usart_log_send(const char *msg)
     abst_usart_send_text(&LOG_USART, msg);
 }
 
-/**
+/*
  * Send log message using USART3 with formatting
  */
 void abst_usart_log_send_format(const char *format, ...)

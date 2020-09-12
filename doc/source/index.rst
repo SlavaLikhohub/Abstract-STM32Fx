@@ -19,8 +19,10 @@ AbstractSTM32Fx documentation
    abstractADC.rst
 
    abstractDMA.rst
-
    
+   abstractUSART.rst
+
+   abstractLOG.rst
 
 Indices and tables
 ==================
