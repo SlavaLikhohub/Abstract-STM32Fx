@@ -333,7 +333,7 @@ enum abst_errors abst_adc_read_cont(struct abst_pin *pins_arr[],
 
     uint8_t channels[N];
     for (uint8_t i = 0; i < N; i++) {
-        channels[i] = pins_arr[i]->adc_channel;
+        channels[i] = pins_arr[N - i - 1]->adc_channel;
     }
 
     adc_set_regular_sequence(opencm_adc, N, channels);
