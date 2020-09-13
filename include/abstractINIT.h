@@ -21,6 +21,7 @@ void _abst_init_pins(   uint8_t port,
                         uint8_t otype, 
                         uint8_t pull_up_down,
                         uint8_t af,
+                        uint8_t af_dir,
                         uint16_t num);
 
 #endif // _ABSTRACT_INIT_H_

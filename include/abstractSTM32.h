@@ -47,6 +47,11 @@ struct abst_pin {
     uint8_t af : 4;
 
     /**
+     * Alternate function direction :c:type:`abst_af_dir` (STM32F1 only).
+     */
+    uint8_t af_dir : 1;
+
+    /**
      * GPIO Output Pins Driver Type :c:type:`abst_pin_otype`
      */
     uint8_t otype : 1;
@@ -119,9 +124,14 @@ struct abst_pin_group {
     uint8_t mode : 2;
 
     /**
-     * GPIO Alternate function (0-15).
+     * GPIO Alternate function (0-15) (for STM32F4 only). 
      */
     uint8_t af : 4;
+
+    /**
+     * Alternate function direction :c:type:`abst_af_dir` (STM32F1 only).
+     */
+    uint8_t af_dir : 1;
 
     /**
      * GPIO Output Pins Driver Type :c:type:`abst_pin_otype`
@@ -179,10 +189,19 @@ enum abst_pin_mode
     ABST_MODE_INPUT = 0,
     /** Output */
     ABST_MODE_OUTPUT,
-    /** Alternative function*/
+    /** Alternate function*/
     ABST_MODE_AF,
     /** Analog*/
     ABST_MODE_ANALOG
+};
+
+/** Direction of Alternate function */
+enum abst_af_dir
+{
+    /** Output */
+    ABST_AF_OUTPUT = 0,
+    /** Input */
+    ABST_AF_INPUT
 };
 
 /** Pin's output driver type */

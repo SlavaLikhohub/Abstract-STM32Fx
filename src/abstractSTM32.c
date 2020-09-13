@@ -156,6 +156,7 @@ enum abst_errors abst_gpio_init(const struct abst_pin *pin_ptr)
                     pin_ptr->otype,
                     pin_ptr->pull_up_down,
                     pin_ptr->af,
+                    pin_ptr->af_dir,
                     1 << pin_ptr->num);
 
     // Setup channel of ADC
@@ -182,6 +183,7 @@ enum abst_errors abst_group_gpio_init(const struct abst_pin_group *pin_gr_ptr)
                     pin_gr_ptr->otype,
                     pin_gr_ptr->pull_up_down,
                     pin_gr_ptr->af,
+                    pin_gr_ptr->af_dir,
                     pin_gr_ptr->num);
 
     return ABST_OK;

@@ -69,14 +69,16 @@ void _abst_init_hard_pwm_tim1(uint32_t anb, uint32_t hard_pwm_freq)
  *
  * :param mode: GPIO Pin mode :c:type:`abst_pin_mode`
  * :param speed: GPIO Output Pin Speed :c:type:`abst_pin_speed`
+ * :param af_dir: Direction of alternate function
  * :return: Mode descriptor from libopencm3.
  */
-static uint8_t _abst_conv_mode(uint8_t mode, uint8_t speed)
+static uint8_t _abst_conv_mode(uint8_t mode, uint8_t speed, uint8_t af_dir)
 {
 #ifdef STM32F1
     uint8_t f1_mode = GPIO_MODE_INPUT; // Default
     
-    if (mode == ABST_MODE_INPUT || mode == ABST_MODE_ANALOG)
+    if (mode == ABST_MODE_INPUT || mode == ABST_MODE_ANALOG || 
+       (mode == ABST_MODE_AF && af_dir == ABST_AF_INPUT))
         f1_mode = GPIO_MODE_INPUT;
     else if (speed == ABST_OSPEED_2MHZ)
         f1_mode = GPIO_MODE_OUTPUT_2_MHZ;
@@ -100,7 +102,7 @@ static uint8_t _abst_conv_mode(uint8_t mode, uint8_t speed)
  * :param otype: GPIO Output Pins Driver Type :c:type:`abst_pin_otype`
  * :return: Config descriptor from libopencm3.
  */
-static uint8_t _abst_conv_cnf(uint8_t mode, uint8_t otype)
+static uint8_t _abst_conv_cnf(uint8_t mode, uint8_t otype, uint8_t af_dir)
 {
 #ifdef STM32F1
     uint8_t f1_cnf = GPIO_CNF_INPUT_FLOAT; // Default
@@ -108,7 +110,8 @@ static uint8_t _abst_conv_cnf(uint8_t mode, uint8_t otype)
             (mode == ABST_MODE_OUTPUT && otype == ABST_OTYPE_PP))
         f1_cnf = GPIO_CNF_INPUT_ANALOG; // = GPIO_CNF_OUTPUT_PUSHPULL
     
-    else if ((mode == ABST_MODE_INPUT || mode == ABST_MODE_OUTPUT) 
+    else if ((mode == ABST_MODE_INPUT || mode == ABST_MODE_OUTPUT || 
+            (mode == ABST_MODE_AF && af_dir == ABST_AF_INPUT)) 
             && otype == ABST_OTYPE_OD)
         f1_cnf = GPIO_CNF_INPUT_FLOAT; // = GPIO_CNF_OUTPUT_OPENDRAIN
 
@@ -177,6 +180,7 @@ void _abst_init_pins(   uint8_t port,
                         uint8_t otype, 
                         uint8_t pull_up_down,
                         uint8_t af,
+                        uint8_t af_dir,
                         uint16_t num)
 {
 #ifdef STM32F4
@@ -207,8 +211,8 @@ void _abst_init_pins(   uint8_t port,
 
     rcc_periph_clock_enable(_abst_opencm_rcc_gpio_conv(port));
     
-    uint8_t f1_mode = _abst_conv_mode(mode, speed);
-    uint8_t f1_cnf = _abst_conv_cnf(mode, otype);
+    uint8_t f1_mode = _abst_conv_mode(mode, speed, af_dir);
+    uint8_t f1_cnf = _abst_conv_cnf(mode, otype, af_dir);
 
     gpio_set_mode(opencm_port, f1_mode, f1_cnf, num);
 #endif
