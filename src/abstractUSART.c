@@ -2,6 +2,7 @@
 #include "libopencm3/stm32/usart.h"
 #include "libopencm3/stm32/rcc.h"
 #include "libopencm3/cm3/nvic.h"
+#include <libopencm3/cm3/cortex.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -137,6 +138,7 @@ void abst_usart_start_sending(struct abst_usart *usart)
  * :param usart: A pointer to the :c:type:`abst_usart` with filled parameters. 
  *
  * :return: Error code according to :c:type:`abst_errors`
+ * Note: Rx and Tx pins should be configured manualy for appropriate alternate function
  */
 enum abst_errors abst_usart_init(struct abst_usart *usart, uint32_t buff_max_size)
 {
@@ -191,6 +193,7 @@ enum abst_errors abst_usart_init(struct abst_usart *usart, uint32_t buff_max_siz
     *(usart->_TX_buff) = _TX_buff;
     
     nvic_enable_irq(opencm_usart_irq);
+    cm_enable_interrupts();
 
     return ABST_OK;
 }

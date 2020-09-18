@@ -6,11 +6,8 @@
 /** Data type for storing data about encoder */
 struct abst_encoder
 {
-    /** Number of timer that is used. Can be only Advanced timers */
+    /* Number of timer that is used. Can be only Advanced timers */
     uint32_t timer;
-
-    /* Pointer to a register */
-    uint16_t *_reg;
 
     /* External counter for overflows and underflows */
     int32_t _counter;

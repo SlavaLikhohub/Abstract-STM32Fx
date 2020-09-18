@@ -23,6 +23,8 @@ AbstractSTM32Fx documentation
    abstractUSART.rst
 
    abstractLOG.rst
+   
+   abstractENCODER.rst
 
 Indices and tables
 ==================

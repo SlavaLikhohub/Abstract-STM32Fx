@@ -26,6 +26,7 @@ struct abst_pin RX = {
     .port = ABST_GPIOB,
     .num = 11,
     .mode = ABST_MODE_AF,
+    .af_dir = ABST_AF_INPUT,
     .otype = ABST_OTYPE_PP,
     .speed = ABST_OSPEED_2MHZ,
     .pull_up_down = ABST_PUPD_NONE,
@@ -40,7 +41,7 @@ void usart3_isr(void)
 /**
  * Init the loggint using USART3
  */
-void abst_usart_log_init(void)
+void abst_usart_log_init(uint32_t baud_rate)
 {
     abst_gpio_init(&TX);
     abst_gpio_init(&RX);

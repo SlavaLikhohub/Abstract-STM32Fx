@@ -2,8 +2,12 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/timer.h>
+#include <libopencm3/cm3/nvic.h>
+#include <libopencm3/cm3/cortex.h>
 
 #include <stdlib.h>
+
+#define ABST_ENCODER_PERIOD 65535
 
 static uint32_t abst_opencm_adv_timer_conv(uint8_t timer)
 {
@@ -53,6 +57,23 @@ static uint32_t abst_opencm_timer_div_conv(enum abst_timer_div div)
             return NULL; // TIM_CR1_CKD_CK_INT
     }
 }
+
+static uint32_t abst_opencm_adv_timer_irq_conv(uint8_t timer)
+{
+    switch (timer) {
+        case 1:
+            return NVIC_TIM1_UP_IRQ;
+            break;
+#ifdef STM32F4
+        case 8:
+            return NVIC_TIM8_UP_IRQ;
+            break;
+#endif // STM32F4
+        default:
+            return NULL;
+    }
+}
+
 /**
  * Initialize the timer to encoder mode
  * 
@@ -67,14 +88,12 @@ enum abst_errors abst_encoder_init(struct abst_encoder *encoder,
     uint32_t opencm_timer = abst_opencm_adv_timer_conv(timer);
     uint32_t opencm_timer_rcc = abst_opencm_adv_timer_rcc_conv(timer);
     uint32_t opencm_timer_div = abst_opencm_timer_div_conv(divider);
+    uint32_t opencm_timer_irq = abst_opencm_adv_timer_irq_conv(timer);
 
     if (!opencm_timer || !opencm_timer_rcc)
         return ABST_WRONG_PARAMS;
 
     encoder->timer = opencm_timer;
-
-    // Pointer to a register
-    encoder->_reg = &TIM_CNT(opencm_timer);
 
     encoder->_counter = 0;
 
@@ -84,7 +103,7 @@ enum abst_errors abst_encoder_init(struct abst_encoder *encoder,
 
     timer_slave_set_mode(opencm_timer, TIM_SMCR_SMS_EM3); // Counting on TI1 and TI2 edges
 
-    timer_set_period(opencm_timer, 65535);
+    timer_set_period(opencm_timer, ABST_ENCODER_PERIOD);
 
     timer_continuous_mode(opencm_timer);
 
@@ -92,16 +111,21 @@ enum abst_errors abst_encoder_init(struct abst_encoder *encoder,
     timer_ic_set_input(opencm_timer, TIM_IC2, TIM_IC_IN_TI2);
 
 
-    timer_ic_set_polarity(opencm_timer, TIM_IC1, TIM_IC_RISING);
-    timer_ic_set_polarity(opencm_timer, TIM_IC2, TIM_IC_RISING);
+    timer_ic_set_polarity(opencm_timer, TIM_IC1, TIM_IC_FALLING);
+    timer_ic_set_polarity(opencm_timer, TIM_IC2, TIM_IC_FALLING);
 
 
-    timer_slave_set_polarity(opencm_timer, TIM_ET_RISING);
+    timer_slave_set_polarity(opencm_timer, TIM_ET_FALLING);
 
-    // timer_update_on_any(opencm_timer);
 
-    // timer_enable_irq(opencm_timer, )
+    // Interupts
+    timer_update_on_overflow(opencm_timer);
+
+    timer_enable_irq(opencm_timer, TIM_DIER_UIE);
     
+    nvic_enable_irq(opencm_timer_irq);
+    cm_enable_interrupts();
+
     timer_ic_enable(opencm_timer, TIM_IC2);
     timer_ic_enable(opencm_timer, TIM_IC1);
 
@@ -116,8 +140,21 @@ enum abst_errors abst_encoder_init(struct abst_encoder *encoder,
  */
 int64_t abst_encoder_read(struct abst_encoder *encoder)
 {
-    uint8_t sign = (encoder->_counter >= 0) ? 1 : -1;
+    return encoder->_counter * ABST_ENCODER_PERIOD + timer_get_counter(encoder->timer);
+}
 
-    // return sign * ((abs(encoder->_counter) << 16) + *(encoder->_reg));
-    return timer_get_counter(encoder->timer);
+/**
+ * Interrupt handler. Should be placed in **tim<N>_up_isr**, 
+ * where **N** is number of timer that is used
+ * 
+ * :param encoder: Pointer to :c:type:`abst_encoder`.
+ */
+void abst_encoder_interrupt_handler(struct abst_encoder *encoder)
+{
+    if (timer_get_counter(encoder->timer) < ABST_ENCODER_PERIOD / 2)
+        encoder->_counter++;
+    else
+        encoder->_counter--;
+
+    timer_clear_flag(encoder->timer, TIM_SR_UIF);
 }
