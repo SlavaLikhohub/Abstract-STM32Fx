@@ -19,6 +19,9 @@ enum abst_errors {
     
     /** Not implemented yet */
     ABST_NOT_IMPLEMENTED = -3
+    
+    /** Operation failed */
+    ABST_OPERATION_FAILED = -4;
 };
 
 /**
