@@ -175,11 +175,15 @@ enum abst_errors abst_usart_init(struct abst_usart *usart, uint32_t buff_max_siz
     usart_disable_rx_dma(opencm_usart);
 
     usart_set_baudrate(opencm_usart, usart->baud_rate);
-
+    
+    usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
+    
     usart_enable_rx_interrupt(opencm_usart);
     
     usart_set_mode(opencm_usart, USART_MODE_TX_RX);
 
+    usart_set_parity(opencm_usart, USART_PARITY_NONE);
+    
     // Init buffers
     struct fifo_buffer _RX_buff = fifo_init(buff_max_size, malloc, free);
 
@@ -192,6 +196,7 @@ enum abst_errors abst_usart_init(struct abst_usart *usart, uint32_t buff_max_siz
     usart->_TX_buff = malloc(sizeof(_TX_buff));
     *(usart->_TX_buff) = _TX_buff;
     
+    // Interrupts
     nvic_enable_irq(opencm_usart_irq);
     cm_enable_interrupts();
 

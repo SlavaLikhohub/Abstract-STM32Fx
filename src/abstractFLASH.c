@@ -11,9 +11,9 @@ enum abst_errors abst_flash_erase_page(uint32_t start_address)
 {
     flash_unlock();
     
-    flash_erase_page(page_address);
+    flash_erase_page(start_address);
     
-    flash_status = flash_get_status_flags();
+    uint32_t flash_status = flash_get_status_flags();
     
     flash_lock();
     if(flash_status != FLASH_SR_EOP)
@@ -45,7 +45,7 @@ enum abst_errors abst_flash_write(uint32_t start_address,
         if(flash_status != FLASH_SR_EOP)
             return ABST_OPERATION_FAILED;
         
-        if(*(start_address + i) != input_data[i])
+        if(*((uint32_t *)(start_address) + i) != input_data[i])
             return ABST_OPERATION_FAILED;
     }
     flash_lock();
@@ -61,12 +61,12 @@ enum abst_errors abst_flash_write(uint32_t start_address,
  * :param num_elements: Number of elements to read
  * :param output_data: Array where to put data
  */
-enum absr_errors abst_flash_read(uint32_t start_address, 
+enum abst_errors abst_flash_read(uint32_t start_address, 
                                  uint16_t num_elements, 
                                  uint32_t output_data[])
 {
     for (uint16_t i = 0; i < num_elements; i++) {
-        output_data[i] = *(start_address + i);
+        output_data[i] = *((uint32_t *)(start_address) + i);
     }
     return ABST_OK;
 }

@@ -18,10 +18,10 @@ enum abst_errors {
     ABST_WRONG_PARAMS = -2, 
     
     /** Not implemented yet */
-    ABST_NOT_IMPLEMENTED = -3
+    ABST_NOT_IMPLEMENTED = -3,
     
     /** Operation failed */
-    ABST_OPERATION_FAILED = -4;
+    ABST_OPERATION_FAILED = -4,
 };
 
 /**
