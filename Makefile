@@ -51,7 +51,6 @@ include $(LIB_MAKES)
 include Makefile.include
 
 all: |  $(BUILD_DIR)/libopencm3.a \
-		$(BUILD_DIR)/liblist.a \
 		$(BUILD_DIR)/libfifo.a \
 		$(BUILD_DIR)/$(ABST_LIBNAME).a
 

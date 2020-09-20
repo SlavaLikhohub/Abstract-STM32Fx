@@ -5,17 +5,17 @@ OPENCM3_DIR = $(LIB_DIR)/libopencm3
 # Definitions required to generate linker script
 include $(OPENCM3_DIR)/mk/genlink-config.mk
 
-# List library
-LIST_DIR = $(LIB_DIR)/list
-
 # FIFO buffer
 FIFO_DIR = $(LIB_DIR)/fifo-buffer
 
+# C-vector
+VECTOR_DIR = $(LIB_DIR)/c-vector
+
 # All includes semi-automatically collected here
 INCS =  -I$(OPENCM3_DIR)/include \
-		-I$(LIST_DIR)/src \
-		-I$(FIFO_DIR)/include \
-		$(addprefix -I,$(INC_DIRS))
+	-I$(FIFO_DIR)/include \
+	-I$(VECTOR_DIR) \
+	$(addprefix -I,$(INC_DIRS))
 
 
 # Include rules to generate linker script
@@ -43,15 +43,9 @@ $(BUILD_DIR):
 
 $(BUILD_DIR)/libopencm3.a: $(BUILD_DIR) $(OPENCM3_DIR)/Makefile
 	@echo Building libopencm3...
-	cd $(OPENCM3_DIR) && $(MAKE) $(MAKEFLAGS) TARGETS="$(LIBOPENCM3_TARGET)" FP_FLAGS="$(FP_FLAGS)" CFLAGS="$(TGT_CFLAGS)" V=1 clean lib
+	cd $(OPENCM3_DIR) && $(MAKE) $(MAKEFLAGS) TARGETS="$(LIBOPENCM3_TARGET)" FP_FLAGS="$(FP_FLAGS)" CFLAGS="$(TGT_CFLAGS)" V=1 lib
 	cp $(OPENCM3_DIR)/lib/libopencm3_$(subst /,,$(LIBOPENCM3_TARGET)).a $@
 	@echo libopencm3 is built
-
-$(BUILD_DIR)/liblist.a: $(LIST_DIR)/build/liblist.a $(BUILD_DIR)
-	cp $< $@
-
-$(LIST_DIR)/build/liblist.a:
-	cd $(LIST_DIR) && $(MAKE) CFLAGS="$(CFLAGS)" CC="$(CC)" AR=$(AR)
 
 $(BUILD_DIR)/libfifo.a: $(FIFO_DIR)/.build/libfifo.a $(BUILD_DIR)
 	cp $< $@

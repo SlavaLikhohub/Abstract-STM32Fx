@@ -33,4 +33,6 @@ enum abst_errors abst_init_dma_p2m_direct(enum abst_dma abst_dma,
                                           uint32_t items_num,
                                           enum abst_periph_size periph_size);
 
+void abst_dma_start(enum abst_dma abst_dma, uint8_t stream, uint8_t channel);
+
 #endif // _ABSTRACT_DMA_H_

@@ -7,7 +7,7 @@
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
 #include <stdint.h>
-#include <list.h>
+#include <cvector.h>
 
 #define CEILING_POS(X) ((X-(int)(X)) > 0 ? (int)(X+1) : (int)(X))
 
@@ -15,32 +15,34 @@ static volatile uint32_t _time_ticks_;
 static volatile bool _sleep_;
 
 // Service variables
-// List of pins that are currently used for software PWM
-static list_t *soft_pwm_list;
-static list_iterator_t *it;
+// Array of pins that are currently used for software PWM
+cvector_vector_type(struct abst_pin *)soft_pwm_array;
+static uint8_t pwm_array_len;
+
 static uint8_t _pwm_cnt_;
+
 static uint32_t frequency;
-// Tick every 100 us
 static uint32_t systick_fr;
 /*
  * Helper function for controling the soft PWM. 
  */
 static void abst_soft_pwm_hander(void)
 {
-    static list_node_t *node;
-
+    uint16_t N = cvector_size(soft_pwm_array);
     // Reset all in first tick
     if (_pwm_cnt_ == 0) {
-        while ((node = list_iterator_next(it))) {
-            struct abst_pin *pin_ptr = node->val;
+        for (uint16_t i = 0; i < N; i++) {
+            struct abst_pin *pin_ptr = soft_pwm_array[i];
+            
             pin_ptr->__pwm_value_set = 0;
             // If __pwm_value == 0 don't turn on the pin
             abst_digital_write(pin_ptr, pin_ptr->__pwm_value);
         }
     }
     else {
-        while ((node = list_iterator_next(it))) {
-            struct abst_pin *pin_ptr = node->val;
+        for (uint16_t i = 0; i < N; i++) {
+            struct abst_pin *pin_ptr = soft_pwm_array[i];
+            
             if (pin_ptr->__pwm_value <= _pwm_cnt_ && !pin_ptr->__pwm_value_set) {
                 abst_digital_write(pin_ptr, 0);
                 pin_ptr->__pwm_value_set = 1;
@@ -48,12 +50,11 @@ static void abst_soft_pwm_hander(void)
         }
     }
     
-    it->next = soft_pwm_list->head;
-    
     _pwm_cnt_++;
     if (_pwm_cnt_ == 255)
         _pwm_cnt_ = 0;
 }
+
 /*
  * Compose bits in the group.
  * Example: pins_num = 0b01001011, value = 0b0100010, output = 0b1010
@@ -92,45 +93,35 @@ static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
  * Initialize the library. 1) Reset global variables 2) Start systick
  *
  * :param ahb: The current AHB frequency in Hz. 
- * :param hard_pwm_freq: Hard pulse wide modulation desired frequency (using TIM1). 
- *      Set **NULL** to disable hard PWM
  * :param soft_pwm_freq: Frequency of soft PWM.
- *          It should be greater than 1e3/255 and less than AHB / (1000 * 255)
+ *          It should be greater than 1e4/255 and less than AHB / (1000 * 255)
  * If frequency changes recall this function with different values.
  */
-void abst_init(uint32_t anb, uint32_t hard_pwm_freq, uint32_t soft_pwm_freq)
+void abst_init(uint32_t anb, uint32_t soft_pwm_freq)
 {
     static bool _inited_ = false;
     frequency  = anb;
     systick_fr = soft_pwm_freq * 256;
-    if (systick_fr < 1e3)
-        systick_fr = 1e3;
+    if (systick_fr < 1e4)
+        systick_fr = 1e4;
     
     if (!_inited_) {
         _time_ticks_ = 0;
         _pwm_cnt_ = 0;
         _sleep_ = false;
-        soft_pwm_list = list_new();
-        it = list_iterator_new(soft_pwm_list, LIST_HEAD);
         _inited_ = true;
     }
 
     // SYSTICK for delays and PWMs
     _abst_init_systick(systick_fr, anb);
-
-    // Timer TIM1 for hard PWM
-    _abst_init_hard_pwm_tim1(anb, hard_pwm_freq);
-
-    // ADC
-    //_abst_adc_init_single_conv(1, 2);
 }
 
 
 void abst_sys_tick_handler(void)
 {
     _time_ticks_++;
-    // If soft_pwm_list is not empty
-    if (soft_pwm_list->len)
+    // If soft_pwm_array is not empty
+    if (cvector_size(soft_pwm_array))
         abst_soft_pwm_hander();
 }
 
@@ -278,8 +269,16 @@ uint16_t abst_group_digital_read(const struct abst_pin_group *pin_gr_ptr)
 void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value)
 {
     pin_ptr->__pwm_value = value;
-    if (!list_find(soft_pwm_list, pin_ptr))
-        list_lpush(soft_pwm_list, list_node_new(pin_ptr));
+    bool found = false;
+    uint16_t N = cvector_size(soft_pwm_array);
+    for (uint16_t i = 0; i < N; i++) {
+        if (soft_pwm_array[i] == pin_ptr) {
+            found = true;
+            break;
+        }
+    }
+    if (!found)
+        cvector_push_back(soft_pwm_array, pin_ptr);
 }
 
 /**
@@ -290,11 +289,23 @@ void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value)
  */
 bool abst_stop_pwm_soft(struct abst_pin *pin_ptr)
 {
-    list_node_t *list_pin = list_find(soft_pwm_list, pin_ptr);
-    if (!list_pin)
+    bool found = false;
+    uint16_t N = cvector_size(soft_pwm_array);
+    uint16_t i;
+    for (i = 0; i < N; i++) {
+        if (soft_pwm_array[i] == pin_ptr) {
+            found = true;
+            break;
+        }
+    }
+    if (!found)
         return false;
     
-    list_remove(soft_pwm_list, list_pin);
+    for (uint16_t j = i; j < N; j++) {
+        soft_pwm_array[j] = soft_pwm_array[j + 1];
+    }
+    cvector_pop_back(soft_pwm_array);
+    
     abst_digital_write(pin_ptr, 0);
     return true;
 }

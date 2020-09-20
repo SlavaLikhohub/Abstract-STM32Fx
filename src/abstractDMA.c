@@ -64,7 +64,7 @@ enum abst_errors abst_init_dma_p2m_direct(enum abst_dma abst_dma,
 #ifdef STM32F1
     uint32_t dma = _abst_conv_dma(abst_dma);
 
-    dma_disable_channel(dma, channel);
+    dma_channel_reset(dma, channel);
 
     // Wait untill stream will end up the transmission
     uint32_t i = 0;
@@ -97,8 +97,6 @@ enum abst_errors abst_init_dma_p2m_direct(enum abst_dma abst_dma,
 
     dma_set_memory_size(dma, channel, periph_size << 10);
 
-    dma_enable_channel(dma, channel);
-
     return ABST_OK;
 #endif // STM32F1
 
@@ -107,7 +105,7 @@ enum abst_errors abst_init_dma_p2m_direct(enum abst_dma abst_dma,
     if (dma == NULL)
         return ABST_WRONG_PARAMS;
 
-    dma_disable_stream(dma, stream);
+    dma_stream_reset(dma, stream);
 
     uint32_t i = 0;
     // Wait untill stream will end up the transmission
@@ -145,9 +143,26 @@ enum abst_errors abst_init_dma_p2m_direct(enum abst_dma abst_dma,
 
     dma_disable_double_buffer_mode(dma, stream);
 
-    dma_enable_stream(dma, stream);
-
     return ABST_OK;
 #endif // STM32F4
     return ABST_NOT_IMPLEMENTED;
+}
+
+/**
+ * Enable DMA. Should be called just before periphery start working
+ * 
+ * :param dma: DMA number :c:type:`abst_dma`.
+ * :param stream: Stream number (STM32F4).
+ * :param channel: Channel number (STM32F1).
+ */
+void abst_dma_start(enum abst_dma abst_dma, uint8_t stream, uint8_t channel)
+{
+    uint32_t dma = _abst_conv_dma(abst_dma);
+#ifdef STM32F1
+    dma_enable_channel(dma, channel);
+#endif //STM32F1
+    
+#ifdef STM32F4
+    dma_enable_stream(dma, stream);
+#endif //STM32F4
 }
