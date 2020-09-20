@@ -17,21 +17,18 @@ static volatile bool _sleep_;
 // Service variables
 // List of pins that are currently used for software PWM
 static list_t *soft_pwm_list;
+static list_iterator_t *it;
 static uint8_t _pwm_cnt_;
 static uint32_t frequency;
 // Tick every 100 us
-static const uint32_t systick_fr = 1e4;
-
+static uint32_t systick_fr;
 /*
  * Helper function for controling the soft PWM. 
  */
 static void abst_soft_pwm_hander(void)
 {
-    static list_iterator_t *it;
     static list_node_t *node;
 
-    it = list_iterator_new(soft_pwm_list, LIST_HEAD);
-    
     // Reset all in first tick
     if (_pwm_cnt_ == 0) {
         while ((node = list_iterator_next(it))) {
@@ -51,7 +48,8 @@ static void abst_soft_pwm_hander(void)
         }
     }
     
-    free(it);
+    it->next = soft_pwm_list->head;
+    
     _pwm_cnt_++;
     if (_pwm_cnt_ == 255)
         _pwm_cnt_ = 0;
@@ -96,19 +94,24 @@ static uint16_t decompose_bits(uint16_t pins_num, uint16_t values)
  * :param ahb: The current AHB frequency in Hz. 
  * :param hard_pwm_freq: Hard pulse wide modulation desired frequency (using TIM1). 
  *      Set **NULL** to disable hard PWM
- *
+ * :param soft_pwm_freq: Frequency of soft PWM.
+ *          It should be greater than 1e3/255 and less than AHB / (1000 * 255)
  * If frequency changes recall this function with different values.
  */
-void abst_init(uint32_t anb, uint32_t hard_pwm_freq)
+void abst_init(uint32_t anb, uint32_t hard_pwm_freq, uint32_t soft_pwm_freq)
 {
     static bool _inited_ = false;
     frequency  = anb;
+    systick_fr = soft_pwm_freq * 256;
+    if (systick_fr < 1e3)
+        systick_fr = 1e3;
+    
     if (!_inited_) {
         _time_ticks_ = 0;
         _pwm_cnt_ = 0;
         _sleep_ = false;
         soft_pwm_list = list_new();
-
+        it = list_iterator_new(soft_pwm_list, LIST_HEAD);
         _inited_ = true;
     }
 

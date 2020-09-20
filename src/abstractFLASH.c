@@ -39,11 +39,11 @@ enum abst_errors abst_flash_write(uint32_t start_address,
     flash_unlock();
     
     for (uint16_t i = 0; i < num_elements; i++) {
-        flash_program_word(start_address + i, input_data[i]);
+        flash_program_word(start_address + i * sizeof(input_data[0]), input_data[i]);
         
         flash_status = flash_get_status_flags();
-        if(flash_status != FLASH_SR_EOP)
-            return ABST_OPERATION_FAILED;
+//         if(flash_status != FLASH_SR_EOP)
+//             return ABST_OPERATION_FAILED;
         
         if(*((uint32_t *)(start_address) + i) != input_data[i])
             return ABST_OPERATION_FAILED;

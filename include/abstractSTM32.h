@@ -247,7 +247,7 @@ enum abst_pin_speed
     ABST_OSPEED_100MHZ
 };
 
-void abst_init(uint32_t anb, uint32_t hard_pwm_freq);
+void abst_init(uint32_t anb, uint32_t hard_pwm_freq, uint32_t soft_pwm_freq);
 
 enum abst_errors abst_gpio_init(const struct abst_pin *pin_ptr);
 
