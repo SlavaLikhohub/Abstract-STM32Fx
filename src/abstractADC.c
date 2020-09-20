@@ -1,9 +1,9 @@
 #include "abstractADC.h"
 #include "abstractDMA.h"
+#include "abstractSTM32.h"
 #include "abst_libopencm3.h"
 #include <stdint.h>
 #include <stddef.h>
-
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/adc.h>
 
@@ -401,8 +401,11 @@ enum abst_errors abst_adc_read_cont(struct abst_pin *pins_arr[],
 
     if (err != ABST_OK)
         return err;
-
+    
+    adc_power_off(opencm_adc);
     abst_dma_start(dma, stream, channel);
+    
+    adc_power_on(opencm_adc);
     adc_start_conversion_regular(opencm_adc);
     
     return ABST_OK;

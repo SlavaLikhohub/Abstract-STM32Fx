@@ -25,6 +25,8 @@ AbstractSTM32Fx documentation
    abstractLOG.rst
    
    abstractENCODER.rst
+   
+   abstractFLASH.rst
 
 Indices and tables
 ==================
