@@ -22,6 +22,7 @@ SOURCES += abstractUSART.c
 SOURCES += abstractLOG.c
 SOURCES += abstractENCODER.c
 SOURCES += abstractFLASH.c
+SOURCES += abstractLOCK.c
 SOURCES += abst_libopencm3.c
 
 CC		= $(PREFIX)gcc
