@@ -13,9 +13,17 @@ struct abst_usart LOG_USART =
 };
 
 struct abst_pin TX = {
+#ifdef STM32F1
     .port = ABST_GPIOB,
     .num = 10,
+#endif
+#ifdef STM32F4
+    .port = ABST_GPIOD,
+    .num = 8,
+#endif
     .mode = ABST_MODE_AF,
+    .af = 7, // For STM32F4
+    .af_dir = ABST_AF_OUTPUT,  // For STM32F1
     .otype = ABST_OTYPE_PP,
     .speed = ABST_OSPEED_2MHZ,
     .pull_up_down = ABST_PUPD_NONE,
@@ -23,10 +31,17 @@ struct abst_pin TX = {
 };
 
 struct abst_pin RX = {
+#ifdef STM32F1
     .port = ABST_GPIOB,
     .num = 11,
+#endif
+#ifdef STM32F4
+    .port = ABST_GPIOD,
+    .num = 9,
+#endif
     .mode = ABST_MODE_AF,
-    .af_dir = ABST_AF_INPUT,
+    .af = 7, // For STM32F4
+    .af_dir = ABST_AF_INPUT, // For STM32F1
     .otype = ABST_OTYPE_PP,
     .speed = ABST_OSPEED_2MHZ,
     .pull_up_down = ABST_PUPD_NONE,
@@ -40,9 +55,12 @@ void usart3_isr(void)
 }
 /**
  * Init the loggint using USART3
+ * 
+ * :param baud_rate: Baud rate of USART3
  */
 void abst_usart_log_init(uint32_t baud_rate)
 {
+    LOG_USART.baud_rate = baud_rate;
     abst_gpio_init(&TX);
     abst_gpio_init(&RX);
     abst_usart_init(&LOG_USART, 100);

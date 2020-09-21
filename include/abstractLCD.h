@@ -106,6 +106,8 @@ void abst_lcd_put_char(const struct abst_lcd *lcd_ptr, const char ch);
 
 void abst_lcd_put_str(const struct abst_lcd *lcd_ptr, char *str);
 
+void abst_lcd_put_str_f(const struct abst_lcd *lcd_ptr, const char *format, ...);
+
 void abst_lcd_set_cursor(const struct abst_lcd *lcd_ptr, uint8_t row, uint8_t column);
 
 void abst_lcd_put_str_sm(const struct abst_lcd *lcd_ptr, char *str, uint32_t interval_ms);

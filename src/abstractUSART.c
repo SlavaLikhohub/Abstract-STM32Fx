@@ -260,7 +260,7 @@ enum abst_errors abst_usart_send_textf(struct abst_usart *usart, const char *for
     vsnprintf(buff, N, format, arg);
     va_end(arg);
 
-    abst_usart_send_text(&LOG_USART, buff);
+    abst_usart_send_text(&usart, buff);
 }
 
 /**

@@ -1,9 +1,12 @@
 #include "abstractLCD.h"
-#include <stdlib.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/f4/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include <sys/types.h>
 
 const uint16_t ABST_LCD_E_HOLD = 1; // us. Datasheet asks for 140 ns.
@@ -330,6 +333,27 @@ void abst_lcd_put_char(const struct abst_lcd *lcd_ptr, const char ch)
 void abst_lcd_put_str(const struct abst_lcd *lcd_ptr, char *str)
 {
     abst_lcd_put_str_sm(lcd_ptr, str, 0);
+}
+
+/**
+ * Put string to LCD using formatting (max 200 chars)
+ *
+ * :param lcd_ptr: Pointer to :c:type:`abst_lcd` with filled parameters that has been initialized by :c:func:`abst_lcd_init`.
+ * :param ch: Null terminated fromat string to put.
+ * :param ...: Variables to be substituted into the message according to the **format**.
+ */
+void abst_lcd_put_str_f(const struct abst_lcd *lcd_ptr, const char *format, ...)
+{
+    va_list arg;
+
+    uint8_t N = 200;
+    char buff[N];
+
+    va_start(arg, format);
+    vsnprintf(buff, N, format, arg);
+    va_end(arg);
+    
+    abst_lcd_put_str(lcd_ptr, buff);
 }
 
 /**
