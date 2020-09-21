@@ -29,14 +29,13 @@ void _abst_init_systick(uint32_t systick_fr, uint32_t anb)
 }
 
 /**
- * Helper function for initializing TIM1 for PWM.
- * Called from :c:func:`abst_init`
+ * Initialize TIM1 for PWM.
  *
  * :param anb: The current AHB frequency in Hz.
  * :param hard_pwm_freq: Hard pulse wide modulation desired frequency (using TIM1). 
  *      Set **NULL** to disable hard PWM
  */
-void _abst_init_hard_pwm_tim1(uint32_t anb, uint32_t hard_pwm_freq)
+void abst_init_hard_pwm_tim1(uint32_t anb, uint32_t hard_pwm_freq)
 {
     if (!hard_pwm_freq) // Quick exit
         return;
