@@ -1,8 +1,8 @@
 #ifndef _ABSTRACT_USART_H_
 #define _ABSTRACT_USART_H_
 
-#import "abstractSTM32.h"
-#import "fifo_buffer.h"
+#include "abstractSTM32.h"
+#include "fifo_buffer.h"
 
 /** Word length */
 enum abst_usart_world_len
@@ -63,6 +63,8 @@ enum abst_errors abst_usart_send_msg(struct abst_usart *usart, uint16_t data[], 
 void abst_usart_interraption_handler(struct abst_usart *usart);
 
 enum abst_errors abst_usart_send_text(struct abst_usart *usart, char *text);
+
+enum abst_errors abst_usart_send_textf(struct abst_usart *usart, const char *format, ...);
 
 uint16_t abst_usart_read_elements(struct abst_usart *usart, size_t N, enum fifo_errors *err);
 

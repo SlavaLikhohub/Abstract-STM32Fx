@@ -5,6 +5,8 @@
 #include <libopencm3/cm3/cortex.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 static uint32_t _abst_conv_usart(uint8_t abst_usart)
 {
@@ -165,8 +167,6 @@ enum abst_errors abst_usart_init(struct abst_usart *usart, uint32_t buff_max_siz
 
     rcc_periph_clock_enable(opencm_usart_rcc);
 
-    usart_enable(opencm_usart);
-
     usart_set_databits(opencm_usart, opencm_word_len);
 
     usart_set_stopbits(opencm_usart, opncm_stp_bits);
@@ -200,6 +200,8 @@ enum abst_errors abst_usart_init(struct abst_usart *usart, uint32_t buff_max_siz
     nvic_enable_irq(opencm_usart_irq);
     cm_enable_interrupts();
 
+    usart_enable(opencm_usart);
+    
     return ABST_OK;
 }
 
@@ -236,6 +238,29 @@ enum abst_errors abst_usart_send_text(struct abst_usart *usart, char *text)
     }
 
     abst_usart_send_msg(usart, data, N);
+}
+
+
+/**
+ * Send text throught USART (Max length 200 chars)
+ *
+ * :param usart: A pointer to the :c:type:`abst_usart` after initialization by :c:func:`abst_usart_init`.
+ * :param format: Null-terminated string format to be transmitted.
+ * :param ...: Variables to be substituted into the message according to the **format**.
+ * :return: Error code acording to :c:type:`abst_errors`.
+ */
+enum abst_errors abst_usart_send_textf(struct abst_usart *usart, const char *format, ...)
+{
+    va_list arg;
+
+    uint8_t N = 200;
+    char buff[N];
+
+    va_start(arg, format);
+    vsnprintf(buff, N, format, arg);
+    va_end(arg);
+
+    abst_usart_send_text(&LOG_USART, buff);
 }
 
 /**

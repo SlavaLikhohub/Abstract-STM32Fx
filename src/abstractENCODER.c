@@ -60,18 +60,18 @@ static uint32_t abst_opencm_timer_div_conv(enum abst_timer_div div)
 
 static uint32_t abst_opencm_adv_timer_irq_conv(uint8_t timer)
 {
+#ifdef STM32F1
     switch (timer) {
         case 1:
             return NVIC_TIM1_UP_IRQ;
             break;
-#ifdef STM32F4
         case 8:
             return NVIC_TIM8_UP_IRQ;
             break;
-#endif // STM32F4
         default:
             return NULL;
     }
+#endif // STM32F4
 }
 
 /**
