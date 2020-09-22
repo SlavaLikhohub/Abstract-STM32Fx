@@ -1,6 +1,7 @@
 #include "abstractSTM32.h"
 #include "abst_libopencm3.h"
 #include "abstractINIT.h"
+#include "abstractLOCK.h"
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/stm32/gpio.h>
@@ -18,8 +19,9 @@ static volatile bool _sleep_;
 // Array of pins that are currently used for software PWM
 cvector_vector_type(struct abst_pin *)soft_pwm_array;
 static uint8_t pwm_array_len;
-
 static uint8_t _pwm_cnt_;
+abst_lock pwm_lock;
+
 
 static uint32_t frequency;
 static uint32_t systick_fr;
@@ -34,7 +36,11 @@ static void abst_soft_pwm_hander(void)
         for (uint16_t i = 0; i < N; i++) {
             struct abst_pin *pin_ptr = soft_pwm_array[i];
             
+            if (!abst_lock_try_set(&pwm_lock)) // Skip if locked
+                continue;
+            
             pin_ptr->__pwm_value_set = 0;
+            abst_lock_clear(&pwm_lock);
             // If __pwm_value == 0 don't turn on the pin
             abst_digital_write(pin_ptr, pin_ptr->__pwm_value);
         }
@@ -45,11 +51,15 @@ static void abst_soft_pwm_hander(void)
             
             if (pin_ptr->__pwm_value <= _pwm_cnt_ && !pin_ptr->__pwm_value_set) {
                 abst_digital_write(pin_ptr, 0);
+                
+                if (!abst_lock_try_set(&pwm_lock)) // Skip if locked
+                    continue;
                 pin_ptr->__pwm_value_set = 1;
+                abst_lock_clear(&pwm_lock);
             }
         }
     }
-    
+        
     _pwm_cnt_++;
     if (_pwm_cnt_ == 255)
         _pwm_cnt_ = 0;
@@ -277,8 +287,11 @@ void abst_pwm_soft(struct abst_pin *pin_ptr, uint8_t value)
             break;
         }
     }
-    if (!found)
+    if (!found) {
+        abst_lock_spin(&pwm_lock);
         cvector_push_back(soft_pwm_array, pin_ptr);
+        abst_lock_clear(&pwm_lock);
+    }
 }
 
 /**
@@ -304,7 +317,9 @@ bool abst_stop_pwm_soft(struct abst_pin *pin_ptr)
     for (uint16_t j = i; j < N; j++) {
         soft_pwm_array[j] = soft_pwm_array[j + 1];
     }
+    abst_lock_spin(&pwm_lock);
     cvector_pop_back(soft_pwm_array);
+    abst_lock_clear(&pwm_lock);
     
     abst_digital_write(pin_ptr, 0);
     return true;

@@ -1,19 +1,17 @@
-# stm32f103c8t6
-#
-
 PROFILE ?= release
 
 DOC_DIR = doc
 DOC_FORMAT = html
 
-PREFIX		?= arm-none-eabi-
+PREFIX ?= arm-none-eabi-
 
 DEBUG_FLAGS ?= -std=gnu17 -ggdb3 -O0
 STANDARD_FLAGS ?= -std=gnu17 -Os
 BUILD_DIR := ./build
 SRC_DIR := ./src
 INC_DIRS := ./include
-SOURCES := abstractSTM32.c
+
+SOURCES = abstractSTM32.c
 SOURCES += abstractLCD.c
 SOURCES += abstractINIT.c
 SOURCES += abstractADC.c
@@ -22,10 +20,12 @@ SOURCES += abstractUSART.c
 SOURCES += abstractLOG.c
 SOURCES += abstractENCODER.c
 SOURCES += abstractFLASH.c
+SOURCES += abstractLOCK.c
+SOURCES += abstractCAN.c
 SOURCES += abst_libopencm3.c
 
-CC		= $(PREFIX)gcc
-AR		= $(PREFIX)ar
+CC = $(PREFIX)gcc
+AR = $(PREFIX)ar
 
 LIB_DIR ?= lib
 

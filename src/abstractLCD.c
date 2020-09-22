@@ -1,9 +1,12 @@
 #include "abstractLCD.h"
-#include <stdlib.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/f4/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include <sys/types.h>
 
 const uint16_t ABST_LCD_E_HOLD = 1; // us. Datasheet asks for 140 ns.
