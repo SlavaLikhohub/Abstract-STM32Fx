@@ -18,6 +18,25 @@ static uint32_t abst_opencm_can_conv(uint8_t can)
     }
 }
 
+static uint32_t abst_opencm_can_rcc_conv(uint8_t can)
+{
+#ifdef STM32F1
+    return RCC_CAN;
+#endif // STM32F1
+#ifdef STM32F4
+    switch (can) {
+        case 1:
+            return RCC_CAN1;
+            break;
+        case 2:
+            return RCC_CAN2;
+            break;
+        default:
+            return NULL;
+    }
+#endif // STM32F4
+}
+
 /**
  * Initialize the CAN
  * 
@@ -27,10 +46,11 @@ static uint32_t abst_opencm_can_conv(uint8_t can)
 enum abst_errors abst_can_init(const struct abst_can *can)
 {
     uint32_t opencm_can = abst_opencm_can_conv(can->can_num);
-    if (!opencm_can)
+    uint32_t opencm_can_rcc = abst_opencm_can_rcc_conv(can->can_num);
+    if (!opencm_can || !opencm_can_rcc)
         return ABST_WRONG_PARAMS;
     
-    rcc_periph_clock_enable(RCC_CAN);
+    rcc_periph_clock_enable(opencm_can_rcc);
     
     can_reset(opencm_can);
     
