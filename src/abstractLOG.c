@@ -63,7 +63,7 @@ void abst_usart_log_init(uint32_t baud_rate)
     LOG_USART.baud_rate = baud_rate;
     abst_gpio_init(&TX);
     abst_gpio_init(&RX);
-    abst_usart_init(&LOG_USART, 100);
+    abst_usart_init(&LOG_USART, 500);
 }
 
 /*

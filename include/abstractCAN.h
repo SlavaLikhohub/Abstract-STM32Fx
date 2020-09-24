@@ -56,16 +56,16 @@ struct abst_can_filter_32_bit
     uint8_t filter_id;
     
     /** First message ID to match. */
-    uint8_t id1;
+    uint32_t id1;
     
     /** Second message ID to match. */
-    uint8_t id2;
+    uint32_t id2;
     
     /** FIFO ID. */
-    uint8_t fifo : 2;
+    uint8_t fifo;
     
     /** Enable filter */
-    uint8_t enable : 1;
+    uint8_t enable;
 };
 
 enum abst_errors abst_can_init(const struct abst_can *can);

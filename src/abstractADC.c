@@ -171,11 +171,10 @@ enum abst_errors _abst_init_adc_channel(const struct abst_pin *pin_ptr)
 #ifdef STM32F1 // Extra settings for STM32F1
     
     adc_enable_external_trigger_regular(opencm_adc, ADC_CR2_EXTSEL_SWSTART);
-
-    adc_reset_calibration(opencm_adc);
     
-    adc_calibrate(opencm_adc);
-
+//     adc_reset_calibration(opencm_adc);
+//     
+//     adc_calibrate(opencm_adc);
 #endif // STM32F1
 
     return ABST_OK;
