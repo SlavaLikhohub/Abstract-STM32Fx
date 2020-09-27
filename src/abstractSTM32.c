@@ -112,6 +112,7 @@ void abst_init(uint32_t anb, uint32_t soft_pwm_freq)
     static bool _inited_ = false;
     frequency  = anb;
     systick_fr = soft_pwm_freq * 256;
+    pwm_lock = 0;
     if (systick_fr < 1e4)
         systick_fr = 1e4;
     
@@ -407,8 +408,8 @@ void abst_pwm_hard(struct abst_pin *pin_ptr, uint8_t value)
  */
 void abst_delay_ms(uint32_t miliseconds)
 {
-    volatile uint32_t stp_time = abst_time_ms() + miliseconds;
-    while (abst_time_ms() < stp_time)
+    volatile uint32_t stp_time = _time_ticks_ + (miliseconds * (uint64_t)systick_fr) / (uint64_t)1e3 + 1;
+    while (_time_ticks_ < stp_time)
         abst_sleep_wfi();
     abst_stop_sleep();
 }
@@ -420,7 +421,8 @@ void abst_delay_ms(uint32_t miliseconds)
 void abst_delay_us(uint32_t microseconds)
 {
     //abst_delay_ms((microseconds % 1000) ? (1 + microseconds / 1000) : (microseconds / 1000));
-    while (microseconds-- * (frequency / 1e6) > 0);
+    volatile uint32_t us = microseconds;
+    while (us-- * (frequency / (uint32_t)1e6) > 0);
 }
 
 /**
@@ -448,5 +450,5 @@ void abst_stop_sleep(void)
  */
 uint32_t abst_time_ms(void)
 {
-    return _time_ticks_ * (1e3 / systick_fr);
+    return ((uint64_t)_time_ticks_ * (uint64_t)1e3) / (uint64_t)systick_fr;
 }

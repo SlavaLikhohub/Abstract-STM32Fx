@@ -215,11 +215,11 @@ void __attribute__ ((weak)) _abst_lcd_connect_half_byte(struct abst_lcd *lcd_ptr
     rc_rw_control(lcd_ptr, 0, 0);
 
     send_half_byte(lcd_ptr, 0b0011);
-    abst_delay_ms(5);
+    lcd_delay(lcd_ptr, 5);
     send_half_byte(lcd_ptr, 0b0011);
-    abst_delay_us(200);
+    lcd_delay(lcd_ptr, 200);
     send_half_byte(lcd_ptr, 0b0011);
-    abst_delay_us(200);
+    lcd_delay(lcd_ptr, 200);
     send_half_byte(lcd_ptr, 0b0010);
 
     // Function set

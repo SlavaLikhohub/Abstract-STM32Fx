@@ -32,14 +32,15 @@ static inline void __clrex(void) {
  */
 bool abst_lock_try_set(abst_lock *lock)
 {
+    __DMB();
     if (__ldrex(lock)) { // Locked
         __clrex();
         return false;
     }
     if (__strex(1, lock) == 1) { // Failed
+        __clrex();
         return false;
     }
-    __DMB();
     return true;
 }
 /**
@@ -61,4 +62,5 @@ void abst_lock_clear(abst_lock *lock)
 {
     __DMB();
     *lock = 0;
+    __clrex();
 }
