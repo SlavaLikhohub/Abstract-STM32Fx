@@ -68,9 +68,36 @@ struct abst_can_filter_32_bit
     uint8_t enable;
 };
 
+/** Struct for storing data used for 32 bit CAN filter initialization */
+struct abst_can_filter_16_bit
+{
+    /** Filter ID */
+    uint8_t filter_id;
+    
+    /** First message ID to match. */
+    uint32_t id1;
+    
+    /** Second message ID to match. */
+    uint32_t id2;
+    
+    /** First message ID to match. */
+    uint32_t id3;
+    
+    /** Second message ID to match. */
+    uint32_t id4;
+    
+    /** FIFO ID. */
+    uint8_t fifo;
+    
+    /** Enable filter */
+    uint8_t enable;
+};
+
 enum abst_errors abst_can_init(const struct abst_can *can);
 
 void abst_can_init_filter_32_bit(const struct abst_can_filter_32_bit *filter);
+
+void abst_can_init_filter_16_bit(const struct abst_can_filter_16_bit *filter);
 
 uint8_t abst_can_get_fifo_pending(uint8_t can_num, uint8_t fifo_num);
 

@@ -96,6 +96,23 @@ void abst_can_init_filter_32_bit(const struct abst_can_filter_32_bit *filter)
 }
 
 /**
+ * Initialize CAN 16 bit filter
+ * 
+ * :param: Pointer to a :c:type:`abst_can_filter_16_bit` with filled parameters
+ * :return: Error code according to :c:type:`abst_errors`.
+ */
+void abst_can_init_filter_16_bit(const struct abst_can_filter_16_bit *filter)
+{
+    can_filter_id_mask_16bit_init(filter->filter_id,
+                                  filter->id1,
+                                  filter->id2,
+                                  filter->id3,
+                                  filter->id4,
+                                  filter->fifo,
+                                  filter->enable);
+}
+
+/**
  * Get number of messages are pending in the receive FIFO.
  * 
  * :param can_num: Number of CAN (1, 2).
