@@ -11,7 +11,7 @@
 
 #if !((defined(LOG) && LOG) || defined(HAWKMOTH))
 
-#define abst_log_init(baud_rate)
+#define abst_log_init(baud_rate, buffer)
 #define abst_log(msg)
 #define abst_logf(msg, ...)
 
@@ -23,7 +23,7 @@
  * 
  * :param baud_rate: Baud rate of USART connection
  */
-#define abst_log_init(baud_rate) abst_usart_log_init(baud_rate)
+#define abst_log_init(baud_rate, buffer) abst_usart_log_init(baud_rate, buffer)
 
 /**
  * Send log message using USART3
@@ -41,7 +41,7 @@
 
 #include <stdint.h>
 
-void abst_usart_log_init(uint32_t baud_rate);
+void abst_usart_log_init(uint32_t baud_rate, uint32_t buffer);
 
 void abst_usart_log_send(const char *msg);
 

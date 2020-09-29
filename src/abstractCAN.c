@@ -1,4 +1,6 @@
 #include "abstractCAN.h"
+#include "abstractSTM32.h"
+
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/can.h>
 
@@ -58,7 +60,6 @@ enum abst_errors abst_can_init(const struct abst_can *can)
     rcc_periph_clock_enable(opencm_can_rcc);
     
     can_reset(opencm_can);
-    
     bool init_status = can_init(opencm_can,
                                 can->ttcm, // Time triggered comm mode
                                 can->abom,  // Automatic bus-off management
@@ -93,6 +94,7 @@ void abst_can_init_filter_32_bit(const struct abst_can_filter_32_bit *filter)
                                   filter->id2,
                                   filter->fifo,
                                   filter->enable);
+    abst_delay_ms(50);
 }
 
 /**
@@ -103,7 +105,7 @@ void abst_can_init_filter_32_bit(const struct abst_can_filter_32_bit *filter)
  */
 void abst_can_init_filter_16_bit(const struct abst_can_filter_16_bit *filter)
 {
-    can_filter_id_mask_16bit_init(filter->filter_id,
+    can_filter_id_list_16bit_init(filter->filter_id,
                                   filter->id1,
                                   filter->id2,
                                   filter->id3,

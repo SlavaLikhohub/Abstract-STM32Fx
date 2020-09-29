@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+uint32_t log_buff = 0;
+
 struct abst_usart LOG_USART = 
 {
     .num = 3,
@@ -58,8 +60,10 @@ void usart3_isr(void)
  * 
  * :param baud_rate: Baud rate of USART3
  */
-void abst_usart_log_init(uint32_t baud_rate)
+void abst_usart_log_init(uint32_t baud_rate, uint32_t buffer)
 {
+    log_buff = buffer;
+    
     LOG_USART.baud_rate = baud_rate;
     abst_gpio_init(&TX);
     abst_gpio_init(&RX);
@@ -81,7 +85,7 @@ void abst_usart_log_send_format(const char *format, ...)
 {
     va_list arg;
 
-    uint8_t N = 100;
+    uint8_t N = log_buff;
     char buff[N];
 
     va_start(arg, format);
