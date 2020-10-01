@@ -1,5 +1,4 @@
 #include "abstractCAN.h"
-#include "abstractSTM32.h"
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/can.h>
@@ -82,7 +81,7 @@ enum abst_errors abst_can_init(const struct abst_can *can)
 }
 
 /**
- * Initialize CAN 32 bit filter
+ * Initialize CAN 32 bit filter (Not tested).
  * 
  * :param: Pointer to a :c:type:`abst_can_filter_32_bit` with filled parameters
  * :return: Error code according to :c:type:`abst_errors`.
@@ -90,11 +89,10 @@ enum abst_errors abst_can_init(const struct abst_can *can)
 void abst_can_init_filter_32_bit(const struct abst_can_filter_32_bit *filter)
 {
     can_filter_id_list_32bit_init(filter->filter_id,
-                                  filter->id1,
-                                  filter->id2,
+                                  filter->id1 << 5,
+                                  filter->id2 << 5,
                                   filter->fifo,
                                   filter->enable);
-    abst_delay_ms(50);
 }
 
 /**
@@ -106,10 +104,10 @@ void abst_can_init_filter_32_bit(const struct abst_can_filter_32_bit *filter)
 void abst_can_init_filter_16_bit(const struct abst_can_filter_16_bit *filter)
 {
     can_filter_id_list_16bit_init(filter->filter_id,
-                                  filter->id1,
-                                  filter->id2,
-                                  filter->id3,
-                                  filter->id4,
+                                  filter->id1 << 5,
+                                  filter->id2 << 5,
+                                  filter->id3 << 5,
+                                  filter->id4 << 5,
                                   filter->fifo,
                                   filter->enable);
 }
