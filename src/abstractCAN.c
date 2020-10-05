@@ -129,8 +129,3 @@ uint8_t abst_can_get_fifo_pending(uint8_t can_num, uint8_t fifo_num)
     else
         return 0;
 }
-
-// void abst_can_read_fifo(uint8_t fifo, uint8_t data[], uint8_t N)
-// {
-//     
-// }

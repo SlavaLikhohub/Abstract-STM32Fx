@@ -5,15 +5,9 @@ Abstract-STM32Fx
 Description
 ***********
 
-This library is an abstraction over `libopencm3 <https://github.com/libopencm3/libopencm3/tree/24bef9c49eda109e92e926e065b246a71d454f2d>`_ library including
- 
- - Working with GPIO and GPIO groups
- 
- - Delay
+This library is an abstraction over `libopencm3 <https://github.com/libopencm3/libopencm3/tree/24bef9c49eda109e92e926e065b246a71d454f2d>`_ library.
 
- - Working with LCD display
-
- - Systick
+See list of modules in the Documentation_.
 
 Requirment
 **********
@@ -84,7 +78,9 @@ To build a documentation install
 
 ``abstractSTM32.html`` link will apear in ``doc`` directory.
 
-Example
-*******
+Examples
+********
 
-See `Abstact-STM32Fx-Sample <https://github.com/SlavaLikhohub/Abstract-STM32Fx-Sample>`_.
+`Abstract-STM32Fx-Sample <https://github.com/SlavaLikhohub/Abstract-STM32Fx-Sample>`_
+
+`Abstract-DC-Drive <https://github.com/SlavaLikhohub/Abstract-DC-Drive>`_

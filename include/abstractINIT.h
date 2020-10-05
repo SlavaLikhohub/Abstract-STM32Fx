@@ -9,7 +9,7 @@
 
 void _abst_init_systick(uint32_t systick_fr, uint32_t anb);
 
-void _abst_init_hard_pwm_tim1(uint32_t anb, uint32_t hard_pwm_freq);
+void abst_init_hard_pwm_tim1(uint32_t anb, uint32_t hard_pwm_freq);
 
 enum abst_errors _abst_adc_init_single_conv(uint8_t adc_n, uint8_t prescale);
 
