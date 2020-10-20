@@ -264,6 +264,28 @@ enum abst_errors abst_usart_send_textf(struct abst_usart *usart, const char *for
 }
 
 /**
+ * Send text throught USART (Max length **N** chars)
+ *
+ * :param usart: A pointer to the :c:type:`abst_usart` after initialization by :c:func:`abst_usart_init`.
+ * :param N: Maximum number of characters
+ * :param format: Null-terminated string format to be transmitted.
+ * :param ...: Variables to be substituted into the message according to the **format**.
+ * :return: Error code acording to :c:type:`abst_errors`.
+ */
+enum abst_errors abst_usart_send_textfn(struct abst_usart *usart, uint16_t N, const char *format, ...)
+{
+    va_list arg;
+
+    char buff[N];
+
+    va_start(arg, format);
+    vsnprintf(buff, N, format, arg);
+    va_end(arg);
+
+    abst_usart_send_text(&usart, buff);
+}
+
+/**
  * Read **N** messages from RX buffer.
  *
  * :param usart: A pointer to the :c:type:`abst_usart` after initialization by :c:func:`abst_usart_init`.

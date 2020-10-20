@@ -66,6 +66,8 @@ enum abst_errors abst_usart_send_text(struct abst_usart *usart, char *text);
 
 enum abst_errors abst_usart_send_textf(struct abst_usart *usart, const char *format, ...);
 
+enum abst_errors abst_usart_send_textfn(struct abst_usart *usart, uint16_t N, const char *format, ...);
+
 uint16_t abst_usart_read_elements(struct abst_usart *usart, size_t N, enum fifo_errors *err);
 
 uint16_t abst_usart_read_element(struct abst_usart *usart, enum fifo_errors *err);
